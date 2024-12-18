@@ -1,8 +1,6 @@
 package com.example.forzautils
 
 import android.os.Bundle
-import android.os.Handler
-import android.os.HandlerThread
 import android.util.Log
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
@@ -19,8 +17,6 @@ import forza.telemetry.ForzaTelemetryApi
 import forza.telemetry.ForzaTelemetryBuilder
 import forza.telemetry.VehicleData
 import java.net.DatagramPacket
-import java.net.Inet4Address
-import java.net.NetworkInterface
 import java.util.Timer
 import kotlin.concurrent.schedule
 
