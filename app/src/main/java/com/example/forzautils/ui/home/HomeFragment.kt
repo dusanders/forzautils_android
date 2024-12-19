@@ -1,20 +1,16 @@
 package com.example.forzautils.ui.home
 
-import android.content.Context
 import android.graphics.Typeface
-import androidx.fragment.app.viewModels
 import android.os.Bundle
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
-import androidx.lifecycle.Observer
+import androidx.fragment.app.Fragment
 import com.example.forzautils.R
 import com.example.forzautils.utils.Constants
-import java.net.NetworkInterface
 
 class HomeFragment(private val viewModel: HomeViewModel) : Fragment() {
 

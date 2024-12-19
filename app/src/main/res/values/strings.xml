@@ -8,4 +8,6 @@
     <string name="home_ip_label">IP: %1$s</string>
     <string name="home_port_label">Port: %1$d</string>
     <string name="home_telemetry_note">Note: If using SimHub, please instruct SimHub to forward telemetry data to the above Ip and Port!</string>
+    <string name="networkError_retryBtn">Retry</string>
+    <string name="networkError_desc">There appears to be an error with your WiFi settings as we are unable to find the current WiFi address. Please ensure WiFi is enabled and the device is connected to the same network as Forza.</string>
 </resources>

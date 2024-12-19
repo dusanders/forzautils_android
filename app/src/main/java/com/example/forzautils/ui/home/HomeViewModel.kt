@@ -1,19 +1,11 @@
 package com.example.forzautils.ui.home
 
 import android.util.Log
-import androidx.annotation.MainThread
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewmodel.CreationExtras
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
+import com.example.forzautils.services.WiFiService
 import com.example.forzautils.utils.Constants
-import com.example.forzautils.utils.ForzaListener
-import com.example.forzautils.utils.OffloadThread
-import java.net.Inet4Address
-import java.net.NetworkInterface
 
 class HomeViewModel: ViewModel() {
     private val _tag = "HomeViewModel"
@@ -37,8 +29,8 @@ class HomeViewModel: ViewModel() {
         _version.postValue(version)
     }
 
-    fun setInetState(inet: ForzaListener.InetState) {
-        if(inet.ipString.equals(Constants.DEFAULT_IP)){
+    fun setInetState(inet: WiFiService.InetState) {
+        if(inet.ipString == Constants.DEFAULT_IP){
             _inetError.postValue(true)
         } else {
             _inetError.postValue(false)
