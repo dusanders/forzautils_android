@@ -7,6 +7,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import com.example.forzautils.services.ForzaService
 import com.example.forzautils.services.WiFiService
@@ -48,12 +49,16 @@ class MainActivity : AppCompatActivity(), NetworkErrorViewModel.Callback {
         }
     }
 
-    private val wifiInetObserver: Observer<WiFiService.InetState> = Observer{ inet->
+    private val wifiInetObserver: Observer<WiFiService.InetState> = Observer { inet ->
         if (inet.ipString == Constants.DEFAULT_IP) {
             navigate(Pages.NETWORK_ERROR)
         } else {
             forzaService.start()
         }
+    }
+
+    private val forzaConnectedObserver: Observer<Boolean> = Observer { connected ->
+        Log.d(_tag, "Forza connected")
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -102,37 +107,32 @@ class MainActivity : AppCompatActivity(), NetworkErrorViewModel.Callback {
     private fun removeObservers() {
         wiFiService.inetState.removeObserver(wifiInetObserver)
         forzaService.forzaListening.removeObserver(forzaListeningObserver)
+        forzaService.forzaConnected.removeObserver(forzaConnectedObserver)
     }
+
     private fun attachObservers() {
         wiFiService.inetState.observe(this, wifiInetObserver)
         forzaService.forzaListening.observe(this, forzaListeningObserver)
+        forzaService.forzaConnected.observe(this, forzaConnectedObserver)
     }
 
     private fun navigate(page: Pages) {
-        val transaction = supportFragmentManager.beginTransaction()
+        var fragment: Fragment = SplashFragment(_splashViewModel)
         when (page) {
             Pages.SPLASH -> {
-                transaction.replace(R.id.mainFragment_contentView, SplashFragment(_splashViewModel))
-                    .commit()
+                // no-op - we alread set the fragment as the splash fragment
             }
 
             Pages.HOME -> {
-                transaction.replace(R.id.mainFragment_contentView, HomeFragment(_homeViewModel))
-                    .commit()
-                runOnUiThread({
-                    _homeViewModel.version.observe(this) { selectedVersion ->
-                        Log.d(_tag, "Selected $selectedVersion")
-                    }
-                })
+                fragment = HomeFragment(_homeViewModel)
             }
 
             Pages.NETWORK_ERROR -> {
-                transaction.replace(
-                    R.id.mainFragment_contentView,
-                    NetworkErrorFragment(_networkErrorViewModel)
-                )
-                    .commit()
+                fragment = NetworkErrorFragment(_networkErrorViewModel)
             }
         }
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.mainFragment_contentView, fragment)
+            .commit()
     }
 }
