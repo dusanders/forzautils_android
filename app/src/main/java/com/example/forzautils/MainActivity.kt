@@ -11,31 +11,27 @@ import com.example.forzautils.ui.home.HomeFragment
 import com.example.forzautils.ui.home.HomeViewModel
 import com.example.forzautils.ui.splash.SplashFragment
 import com.example.forzautils.ui.splash.SplashViewModel
+import com.example.forzautils.utils.Constants
+import com.example.forzautils.utils.ForzaListener
 import com.example.forzautils.utils.OffloadThread
-import forza.telemetry.ForzaInterface
-import forza.telemetry.ForzaTelemetryApi
-import forza.telemetry.ForzaTelemetryBuilder
-import forza.telemetry.VehicleData
-import java.net.DatagramPacket
 import java.util.Timer
 import kotlin.concurrent.schedule
 
-class MainActivity : AppCompatActivity(), ForzaInterface {
+class MainActivity : AppCompatActivity() {
     enum class Pages {
         SPLASH,
         HOME
     }
 
-    private val _homeViewModel : HomeViewModel by viewModels()
-    private val _splashViewModel: SplashViewModel by viewModels()
-
     private val _tag: String = "MainActivity"
-    private var telemetryBuilder: ForzaTelemetryBuilder? = null
-    private var telemetryBuilderThread: Thread? = null
+    private val _homeViewModel: HomeViewModel by viewModels()
+    private val _splashViewModel: SplashViewModel by viewModels()
+    private lateinit var _forzaListener: ForzaListener
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        _forzaListener = ForzaListener(Constants.PORT)
         setContentView(R.layout.activity_main)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -47,55 +43,40 @@ class MainActivity : AppCompatActivity(), ForzaInterface {
     override fun onResume() {
         super.onResume()
         navigate(Pages.SPLASH)
-        ensureTelemetry()
-        _homeViewModel.inetState.observe(this, {inet ->
-            Log.d(_tag, "HomeViewModel got new inet ${inet.ipString} @ ${inet.port}")
-            _splashViewModel.setLoadingState(SplashViewModel.LoadingState.FINISHED)
-            navigate(Pages.HOME)
-        })
+        attachForzaListener()
         Timer(_tag, false).schedule(2000) {
-            _homeViewModel.updateIpInfo()
+            _forzaListener.start()
         }
     }
 
     override fun onStop() {
         super.onStop()
-        if(telemetryBuilderThread != null && telemetryBuilderThread!!.isAlive) {
-            Log.w(_tag, "onStop() - Stopping telemetry thread")
-            telemetryBuilderThread?.interrupt()
-        }
+        _forzaListener.stop()
+        OffloadThread.Instance().interrupt()
     }
 
-    private fun ensureTelemetry() {
-        if(telemetryBuilder == null) {
-            telemetryBuilder = _homeViewModel.inetState.value?.port?.let { ForzaTelemetryBuilder(it) }
-            telemetryBuilder?.addListener(this)
+    private fun attachForzaListener() {
+        _forzaListener.forzaListening.observe(this) { listening ->
+            Log.d(_tag, "ForzaListener now listening... $listening")
         }
-        if(telemetryBuilderThread == null) {
-            Log.w(_tag, "TelemetryBuilder Thread is null - starting new...")
-            telemetryBuilderThread = telemetryBuilder?.thread
-            OffloadThread.Instance()
-                .post({
-                    telemetryBuilderThread?.start()
-                })
-        } else if(!telemetryBuilderThread!!.isAlive) {
-            Log.w(_tag, "TelemetryBuilder thread is DEAD - starting...")
-            OffloadThread.Instance()
-                .post({
-                    telemetryBuilderThread?.start()
-                })
+        _forzaListener.inetState.observe(this) { inet ->
+            Log.d(_tag, "ForzaListener updated inet ${inet.ipString}")
+            _splashViewModel.setLoadingState(SplashViewModel.LoadingState.FINISHED)
+            navigate(Pages.HOME)
+            _homeViewModel.setInetState(inet)
         }
     }
 
     private fun navigate(page: Pages) {
         val transaction = supportFragmentManager.beginTransaction()
-        when(page) {
+        when (page) {
             Pages.SPLASH -> {
-                transaction.replace(R.id.mainFragment_contentView, SplashFragment())
+                transaction.replace(R.id.mainFragment_contentView, SplashFragment(_splashViewModel))
                     .commit()
             }
+
             Pages.HOME -> {
-                transaction.replace(R.id.mainFragment_contentView, HomeFragment())
+                transaction.replace(R.id.mainFragment_contentView, HomeFragment(_homeViewModel))
                     .commit()
                 runOnUiThread({
                     _homeViewModel.version.observe(this) { selectedVersion ->
@@ -104,25 +85,5 @@ class MainActivity : AppCompatActivity(), ForzaInterface {
                 })
             }
         }
-    }
-
-    override fun onDataReceived(api: ForzaTelemetryApi?) {
-        TODO("Not yet implemented")
-    }
-
-    override fun onConnected(api: ForzaTelemetryApi?, packet: DatagramPacket?) {
-        TODO("Not yet implemented")
-    }
-
-    override fun onGamePaused() {
-        TODO("Not yet implemented")
-    }
-
-    override fun onGameUnpaused() {
-        TODO("Not yet implemented")
-    }
-
-    override fun onCarChanged(api: ForzaTelemetryApi?, data: VehicleData?) {
-        TODO("Not yet implemented")
     }
 }

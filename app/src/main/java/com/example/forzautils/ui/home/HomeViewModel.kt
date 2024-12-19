@@ -5,75 +5,44 @@ import androidx.annotation.MainThread
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.CreationExtras
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.example.forzautils.utils.Constants
+import com.example.forzautils.utils.ForzaListener
 import com.example.forzautils.utils.OffloadThread
 import java.net.Inet4Address
 import java.net.NetworkInterface
 
-class HomeViewModel : ViewModel() {
-    companion object {
-        val LOOPBACK_IP = "0.0.0.0"
-    }
-
-    enum class ForzaVersion {
-        FM_2023,
-        FM_7
-    }
-
-    data class InetState(
-        var ipString: String = LOOPBACK_IP,
-        var port: Int = 5300,
-    )
-
+class HomeViewModel: ViewModel() {
     private val _tag = "HomeViewModel"
-    private val _inetState: MutableLiveData<InetState> = MutableLiveData()
-    val inetState: LiveData<InetState> get() = _inetState
+    data class InetInfo (
+        val ip: String,
+        val port: Int
+    )
+    init {
+        Log.d(_tag, "init")
+    }
+    private val _inetError: MutableLiveData<Boolean> = MutableLiveData()
+    val inetError: LiveData<Boolean> get() = _inetError
 
-    private val _version: MutableLiveData<ForzaVersion> = MutableLiveData()
-    val version: LiveData<ForzaVersion> get() = _version
+    private val _inetInfo: MutableLiveData<InetInfo> = MutableLiveData()
+    val inetInfo: LiveData<InetInfo> get() = _inetInfo
 
-    fun setForzaVersion(version: ForzaVersion) {
+    private val _version: MutableLiveData<Constants.ForzaVersion> = MutableLiveData()
+    val version: LiveData<Constants.ForzaVersion> get() = _version
+
+    fun setForzaVersion(version: Constants.ForzaVersion) {
         _version.postValue(version)
     }
 
-    fun updateIpInfo() {
-        OffloadThread.Instance()
-            .post({
-                var ipStr = ""
-                val interfaces = NetworkInterface.getNetworkInterfaces()
-                while (interfaces.hasMoreElements()) {
-                    val inetDevice = interfaces.nextElement()
-                    if (inetDevice.isLoopback) {
-                        continue
-                    }
-                    val addresses = inetDevice.inetAddresses
-                    while (addresses.hasMoreElements()) {
-                        val address = addresses.nextElement()
-                        if (address.isLoopbackAddress) {
-                            continue
-                        }
-                        if (address is Inet4Address) {
-                            ipStr = address.hostAddress
-                                ?: address.hostAddress
-                                        ?: LOOPBACK_IP
-                        }
-                    }
-                }
-                Log.d(_tag, "Got IP: $ipStr")
-                setIp(ipStr)
-            })
-    }
-
-    private fun setIp(ipStr: String) {
-        val state = fromPrevious()
-        state.ipString = ipStr
-        _inetState.postValue(state)
-    }
-
-    private fun fromPrevious(): InetState {
-        var state = _inetState.value
-        if (state == null) {
-            state = InetState()
+    fun setInetState(inet: ForzaListener.InetState) {
+        if(inet.ipString.equals(Constants.DEFAULT_IP)){
+            _inetError.postValue(true)
+        } else {
+            _inetError.postValue(false)
+            _inetInfo.postValue(InetInfo(inet.ipString, inet.port))
         }
-        return state;
     }
 }
