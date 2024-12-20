@@ -1,4 +1,4 @@
-package com.example.forzautils.ui.home
+package com.example.forzautils.ui.networkInfo
 
 import android.graphics.Typeface
 import android.os.Bundle
@@ -10,9 +10,8 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import com.example.forzautils.R
-import com.example.forzautils.utils.Constants
 
-class HomeFragment(private val viewModel: HomeViewModel) : Fragment() {
+class NetworkInfoFragment(private val viewModel: NetworkInfoViewModel) : Fragment() {
 
     private val _tag = "HomeFragment"
     private lateinit var view: View
@@ -22,14 +21,10 @@ class HomeFragment(private val viewModel: HomeViewModel) : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         Log.d(_tag, "onCreateView()")
-        view = inflater.inflate(R.layout.fragment_home, container, false)
-        view.findViewById<Button>(R.id.btn_forzaVersion2023)
+        view = inflater.inflate(R.layout.fragment_network_info, container, false)
+        view.findViewById<Button>(R.id.home_btn_ready)
             .setOnClickListener {
-                viewModel.setForzaVersion(Constants.ForzaVersion.FORZA_2023)
-            }
-        view.findViewById<Button>(R.id.btn_forzaVersion7)
-            .setOnClickListener {
-                viewModel.setForzaVersion(Constants.ForzaVersion.FORZA_7)
+                viewModel.onReadyClicked()
             }
         view.findViewById<TextView>(R.id.telemetry_note).typeface =
             Typeface.create(null, 700, false)
@@ -52,15 +47,15 @@ class HomeFragment(private val viewModel: HomeViewModel) : Fragment() {
         view.findViewById<TextView>(R.id.ip_textView).text = ""
         view.findViewById<TextView>(R.id.port_textView).text = ""
         view.findViewById<TextView>(R.id.connection_label).text =
-            resources.getString(R.string.home_wifi_error)
+            resources.getString(R.string.networkInfo_wifi_error)
         view.findViewById<TextView>(R.id.telemetry_note).visibility = View.INVISIBLE
     }
 
     private fun showConnectionInfo(ip: String, port: Int) {
-        val ipString = String.format(resources.getString(R.string.home_ip_label), ip)
-        val portString = String.format(resources.getString(R.string.home_port_label), port)
+        val ipString = String.format(resources.getString(R.string.networkInfo_ip_label), ip)
+        val portString = String.format(resources.getString(R.string.networkInfo_port_label), port)
         view.findViewById<TextView>(R.id.connection_label).text =
-            resources.getString(R.string.home_connection_text)
+            resources.getString(R.string.networkInfo_connection_text)
         view.findViewById<TextView>(R.id.ip_textView).text = ipString
         view.findViewById<TextView>(R.id.port_textView).text = portString
         view.findViewById<TextView>(R.id.telemetry_note).visibility = View.VISIBLE

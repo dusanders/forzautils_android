@@ -11,8 +11,8 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import com.example.forzautils.services.ForzaService
 import com.example.forzautils.services.WiFiService
-import com.example.forzautils.ui.home.HomeFragment
-import com.example.forzautils.ui.home.HomeViewModel
+import com.example.forzautils.ui.networkInfo.NetworkInfoFragment
+import com.example.forzautils.ui.networkInfo.NetworkInfoViewModel
 import com.example.forzautils.ui.networkError.NetworkErrorFragment
 import com.example.forzautils.ui.networkError.NetworkErrorViewModel
 import com.example.forzautils.ui.networkError.NetworkErrorViewModelFactory
@@ -26,13 +26,13 @@ import kotlin.concurrent.schedule
 class MainActivity : AppCompatActivity(), NetworkErrorViewModel.Callback {
     enum class Pages {
         SPLASH,
-        HOME,
+        NETWORK_INFO,
         NETWORK_ERROR
     }
 
     private val _tag: String = "MainActivity"
 
-    private val _homeViewModel: HomeViewModel by viewModels()
+    private val _networkInfoViewModel: NetworkInfoViewModel by viewModels()
     private val _splashViewModel: SplashViewModel by viewModels()
     private val _networkErrorViewModel: NetworkErrorViewModel by viewModels {
         NetworkErrorViewModelFactory(this)
@@ -44,8 +44,8 @@ class MainActivity : AppCompatActivity(), NetworkErrorViewModel.Callback {
     private val forzaListeningObserver: Observer<Boolean> = Observer { listening ->
         Log.d(_tag, "ForzaListener now listening... $listening")
         if (listening) {
-            wiFiService.inetState.value?.let { _homeViewModel.setInetState(it) }
-            navigate(Pages.HOME)
+            wiFiService.inetState.value?.let { _networkInfoViewModel.setInetState(it) }
+            navigate(Pages.NETWORK_INFO)
         }
     }
 
@@ -59,6 +59,10 @@ class MainActivity : AppCompatActivity(), NetworkErrorViewModel.Callback {
 
     private val forzaConnectedObserver: Observer<Boolean> = Observer { connected ->
         Log.d(_tag, "Forza connected")
+    }
+
+    private val homeReadyBtnObserver: Observer<Boolean> = Observer {clicked ->
+        Log.d(_tag, "Home ready clicked")
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -94,6 +98,7 @@ class MainActivity : AppCompatActivity(), NetworkErrorViewModel.Callback {
 
     override fun onRetryNetworkClicked() {
         Log.d(_tag, "Network error - retry clicked")
+        wiFiService.checkNetwork()
     }
 
     private fun initializeServices() {
@@ -105,12 +110,14 @@ class MainActivity : AppCompatActivity(), NetworkErrorViewModel.Callback {
     }
 
     private fun removeObservers() {
+        _networkInfoViewModel.readyBtnClicked.removeObserver(homeReadyBtnObserver)
         wiFiService.inetState.removeObserver(wifiInetObserver)
         forzaService.forzaListening.removeObserver(forzaListeningObserver)
         forzaService.forzaConnected.removeObserver(forzaConnectedObserver)
     }
 
     private fun attachObservers() {
+        _networkInfoViewModel.readyBtnClicked.observe(this, homeReadyBtnObserver)
         wiFiService.inetState.observe(this, wifiInetObserver)
         forzaService.forzaListening.observe(this, forzaListeningObserver)
         forzaService.forzaConnected.observe(this, forzaConnectedObserver)
@@ -120,11 +127,11 @@ class MainActivity : AppCompatActivity(), NetworkErrorViewModel.Callback {
         var fragment: Fragment = SplashFragment(_splashViewModel)
         when (page) {
             Pages.SPLASH -> {
-                // no-op - we alread set the fragment as the splash fragment
+                // no-op - we already set the fragment as the splash fragment
             }
 
-            Pages.HOME -> {
-                fragment = HomeFragment(_homeViewModel)
+            Pages.NETWORK_INFO -> {
+                fragment = NetworkInfoFragment(_networkInfoViewModel)
             }
 
             Pages.NETWORK_ERROR -> {

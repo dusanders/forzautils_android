@@ -1,4 +1,4 @@
-package com.example.forzautils.ui.home
+package com.example.forzautils.ui.networkInfo
 
 import android.util.Log
 import androidx.lifecycle.LiveData
@@ -7,7 +7,7 @@ import androidx.lifecycle.ViewModel
 import com.example.forzautils.services.WiFiService
 import com.example.forzautils.utils.Constants
 
-class HomeViewModel: ViewModel() {
+class NetworkInfoViewModel: ViewModel() {
     private val _tag = "HomeViewModel"
     data class InetInfo (
         val ip: String,
@@ -22,11 +22,11 @@ class HomeViewModel: ViewModel() {
     private val _inetInfo: MutableLiveData<InetInfo> = MutableLiveData()
     val inetInfo: LiveData<InetInfo> get() = _inetInfo
 
-    private val _version: MutableLiveData<Constants.ForzaVersion> = MutableLiveData()
-    val version: LiveData<Constants.ForzaVersion> get() = _version
+    private val _readyBtnClicked: MutableLiveData<Boolean> = MutableLiveData()
+    val readyBtnClicked: LiveData<Boolean> get() = _readyBtnClicked
 
-    fun setForzaVersion(version: Constants.ForzaVersion) {
-        _version.postValue(version)
+    fun onReadyClicked() {
+        _readyBtnClicked.postValue(true);
     }
 
     fun setInetState(inet: WiFiService.InetState) {
