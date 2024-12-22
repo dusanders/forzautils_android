@@ -8,9 +8,13 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import com.example.forzautils.services.ForzaService
 import com.example.forzautils.services.WiFiService
+import com.example.forzautils.ui.dataViewer.dataOptions.DataOptionsFragment
+import com.example.forzautils.ui.dataViewer.DataViewerFragment
+import com.example.forzautils.ui.dataViewer.DataViewerViewModel
 import com.example.forzautils.ui.networkInfo.NetworkInfoFragment
 import com.example.forzautils.ui.networkInfo.NetworkInfoViewModel
 import com.example.forzautils.ui.networkError.NetworkErrorFragment
@@ -26,6 +30,7 @@ import kotlin.concurrent.schedule
 class MainActivity : AppCompatActivity(), NetworkErrorViewModel.Callback {
     enum class Pages {
         SPLASH,
+        DATA_VIEWER,
         NETWORK_INFO,
         NETWORK_ERROR
     }
@@ -37,7 +42,8 @@ class MainActivity : AppCompatActivity(), NetworkErrorViewModel.Callback {
     private val _networkErrorViewModel: NetworkErrorViewModel by viewModels {
         NetworkErrorViewModelFactory(this)
     }
-
+    private lateinit var dataViewerViewModel: DataViewerViewModel
+    private val currentFragment: MutableLiveData<Pages> = MutableLiveData(Pages.SPLASH)
     private lateinit var wiFiService: WiFiService
     private lateinit var forzaService: ForzaService
 
@@ -45,13 +51,15 @@ class MainActivity : AppCompatActivity(), NetworkErrorViewModel.Callback {
         Log.d(_tag, "ForzaListener now listening... $listening")
         if (listening) {
             wiFiService.inetState.value?.let { _networkInfoViewModel.setInetState(it) }
-            navigate(Pages.NETWORK_INFO)
+            if(currentFragment.value == Pages.SPLASH) {
+                currentFragment.postValue(Pages.NETWORK_INFO)
+            }
         }
     }
 
     private val wifiInetObserver: Observer<WiFiService.InetState> = Observer { inet ->
         if (inet.ipString == Constants.DEFAULT_IP) {
-            navigate(Pages.NETWORK_ERROR)
+            currentFragment.postValue(Pages.NETWORK_ERROR)
         } else {
             forzaService.start()
         }
@@ -61,14 +69,20 @@ class MainActivity : AppCompatActivity(), NetworkErrorViewModel.Callback {
         Log.d(_tag, "Forza connected")
     }
 
-    private val homeReadyBtnObserver: Observer<Boolean> = Observer {clicked ->
+    private val homeReadyBtnObserver: Observer<Boolean> = Observer { clicked ->
         Log.d(_tag, "Home ready clicked")
+        currentFragment.postValue(Pages.DATA_VIEWER)
+    }
+
+    private val fragmentObserver: Observer<Pages> = Observer { page ->
+        updateFragment(page)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         initializeServices()
+        initializeViewModels()
         setContentView(R.layout.activity_main)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -79,11 +93,8 @@ class MainActivity : AppCompatActivity(), NetworkErrorViewModel.Callback {
 
     override fun onResume() {
         super.onResume()
-        navigate(Pages.SPLASH)
-        Timer(_tag, false).schedule(2000) {
-            runOnUiThread {
-                attachObservers()
-            }
+        attachObservers()
+        OffloadThread.Instance().post {
             wiFiService.checkNetwork()
         }
     }
@@ -109,11 +120,16 @@ class MainActivity : AppCompatActivity(), NetworkErrorViewModel.Callback {
         forzaService = ForzaService(wiFiService.port)
     }
 
+    private fun initializeViewModels() {
+        dataViewerViewModel = DataViewerViewModel(forzaService)
+    }
+
     private fun removeObservers() {
         _networkInfoViewModel.readyBtnClicked.removeObserver(homeReadyBtnObserver)
         wiFiService.inetState.removeObserver(wifiInetObserver)
         forzaService.forzaListening.removeObserver(forzaListeningObserver)
         forzaService.forzaConnected.removeObserver(forzaConnectedObserver)
+        currentFragment.removeObserver(fragmentObserver)
     }
 
     private fun attachObservers() {
@@ -121,9 +137,10 @@ class MainActivity : AppCompatActivity(), NetworkErrorViewModel.Callback {
         wiFiService.inetState.observe(this, wifiInetObserver)
         forzaService.forzaListening.observe(this, forzaListeningObserver)
         forzaService.forzaConnected.observe(this, forzaConnectedObserver)
+        currentFragment.observe(this, fragmentObserver)
     }
 
-    private fun navigate(page: Pages) {
+    private fun updateFragment(page: Pages) {
         var fragment: Fragment = SplashFragment(_splashViewModel)
         when (page) {
             Pages.SPLASH -> {
@@ -136,6 +153,10 @@ class MainActivity : AppCompatActivity(), NetworkErrorViewModel.Callback {
 
             Pages.NETWORK_ERROR -> {
                 fragment = NetworkErrorFragment(_networkErrorViewModel)
+            }
+
+            Pages.DATA_VIEWER -> {
+                fragment = DataViewerFragment(dataViewerViewModel)
             }
         }
         supportFragmentManager.beginTransaction()

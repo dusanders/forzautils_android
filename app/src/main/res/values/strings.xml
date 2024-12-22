@@ -11,4 +11,5 @@
     <string name="networkInfo_telemetry_note">Note: If using SimHub, please instruct SimHub to forward telemetry data to the above Ip and Port!</string>
     <string name="networkError_retryBtn">Retry</string>
     <string name="networkError_desc">There appears to be an error with your WiFi settings as we are unable to find the current WiFi address. Please ensure WiFi is enabled and the device is connected to the same network as Forza.</string>
+    <string name="data_options_dynoBtn">HP/Torque Ratings</string>
 </resources>
