@@ -7,7 +7,8 @@ import androidx.lifecycle.ViewModel
 import com.example.forzautils.services.ForzaService
 import forza.telemetry.ForzaTelemetryApi
 
-class HpTorqueViewModel(private val forzaService: ForzaService) : ViewModel() {
+class HpTorqueViewModel : ViewModel() {
+    private lateinit var forzaService: ForzaService
 
     private val _hp: MutableLiveData<Float> = MutableLiveData(0f)
     val hp: LiveData<Float> get() = _hp;
@@ -25,13 +26,14 @@ class HpTorqueViewModel(private val forzaService: ForzaService) : ViewModel() {
         parseData(data)
     }
 
-    init {
-        attachObservers()
-    }
-
     override fun onCleared() {
         super.onCleared()
         removeObservers()
+    }
+
+    fun setForzaService(forzaService: ForzaService) {
+        this.forzaService = forzaService
+        attachObservers()
     }
 
     private fun attachObservers() {

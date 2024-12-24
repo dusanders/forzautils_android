@@ -1,24 +1,23 @@
 package com.example.forzautils.ui.dataViewer.hpTorque
 
-import androidx.fragment.app.viewModels
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import com.example.forzautils.R
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.Description
-import com.github.mikephil.charting.data.ChartData
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
-import forza.telemetry.ForzaTelemetryApi
 
-class HpTorqueFragment(private val viewModel: HpTorqueViewModel) : Fragment() {
+class HpTorqueFragment : Fragment() {
 
+    private val viewModel: HpTorqueViewModel by activityViewModels()
     private lateinit var view: View;
 
     private val rpm: Observer<Float> = Observer { rpm ->

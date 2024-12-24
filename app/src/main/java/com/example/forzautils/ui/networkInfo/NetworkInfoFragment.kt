@@ -9,18 +9,19 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import com.example.forzautils.R
 
-class NetworkInfoFragment(private val viewModel: NetworkInfoViewModel) : Fragment() {
+class NetworkInfoFragment : Fragment() {
 
-    private val _tag = "HomeFragment"
+    private val _tag = "NetworkInfoFragment"
+    private val viewModel: NetworkInfoViewModel by activityViewModels()
     private lateinit var view: View
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        Log.d(_tag, "onCreateView()")
         view = inflater.inflate(R.layout.fragment_network_info, container, false)
         view.findViewById<Button>(R.id.home_btn_ready)
             .setOnClickListener {
@@ -33,7 +34,6 @@ class NetworkInfoFragment(private val viewModel: NetworkInfoViewModel) : Fragmen
 
     override fun onResume() {
         super.onResume()
-        Log.d(_tag, "onResume()")
         viewModel.inetError.observe(this) { isError ->
             isError ?: showIpError()
         }

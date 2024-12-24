@@ -60,9 +60,13 @@ class WiFiService(
         OffloadThread.Instance().post({
             val isAvailable = connectivityManager.activeNetwork
             if(isAvailable != null) {
-                runBlocking {
-                    val inetState = (async { updateInet() }).await()
-                    _inetState.postValue(inetState)
+                try {
+                    runBlocking {
+                        val inetState = (async { updateInet() }).await()
+                        _inetState.postValue(inetState)
+                    }
+                }catch (error: InterruptedException) {
+                    Log.w(_tag, "Interrupted while checking network...")
                 }
             }
         })

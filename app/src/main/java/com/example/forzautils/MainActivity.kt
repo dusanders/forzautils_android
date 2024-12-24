@@ -12,20 +12,16 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import com.example.forzautils.services.ForzaService
 import com.example.forzautils.services.WiFiService
-import com.example.forzautils.ui.dataViewer.dataOptions.DataOptionsFragment
 import com.example.forzautils.ui.dataViewer.DataViewerFragment
 import com.example.forzautils.ui.dataViewer.DataViewerViewModel
-import com.example.forzautils.ui.networkInfo.NetworkInfoFragment
-import com.example.forzautils.ui.networkInfo.NetworkInfoViewModel
 import com.example.forzautils.ui.networkError.NetworkErrorFragment
 import com.example.forzautils.ui.networkError.NetworkErrorViewModel
-import com.example.forzautils.ui.networkError.NetworkErrorViewModelFactory
+import com.example.forzautils.ui.networkInfo.NetworkInfoFragment
+import com.example.forzautils.ui.networkInfo.NetworkInfoViewModel
 import com.example.forzautils.ui.splash.SplashFragment
 import com.example.forzautils.ui.splash.SplashViewModel
 import com.example.forzautils.utils.Constants
 import com.example.forzautils.utils.OffloadThread
-import java.util.Timer
-import kotlin.concurrent.schedule
 
 class MainActivity : AppCompatActivity(), NetworkErrorViewModel.Callback {
     enum class Pages {
@@ -39,10 +35,9 @@ class MainActivity : AppCompatActivity(), NetworkErrorViewModel.Callback {
 
     private val _networkInfoViewModel: NetworkInfoViewModel by viewModels()
     private val _splashViewModel: SplashViewModel by viewModels()
-    private val _networkErrorViewModel: NetworkErrorViewModel by viewModels {
-        NetworkErrorViewModelFactory(this)
-    }
-    private lateinit var dataViewerViewModel: DataViewerViewModel
+    private val _networkErrorViewModel: NetworkErrorViewModel by viewModels()
+    private val _dataViewerViewModel: DataViewerViewModel by viewModels()
+
     private val currentFragment: MutableLiveData<Pages> = MutableLiveData(Pages.SPLASH)
     private lateinit var wiFiService: WiFiService
     private lateinit var forzaService: ForzaService
@@ -51,7 +46,7 @@ class MainActivity : AppCompatActivity(), NetworkErrorViewModel.Callback {
         Log.d(_tag, "ForzaListener now listening... $listening")
         if (listening) {
             wiFiService.inetState.value?.let { _networkInfoViewModel.setInetState(it) }
-            if(currentFragment.value == Pages.SPLASH) {
+            if (currentFragment.value == Pages.SPLASH) {
                 currentFragment.postValue(Pages.NETWORK_INFO)
             }
         }
@@ -75,7 +70,7 @@ class MainActivity : AppCompatActivity(), NetworkErrorViewModel.Callback {
     }
 
     private val fragmentObserver: Observer<Pages> = Observer { page ->
-//        updateFragment(page)
+        updateFragment(page)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -97,7 +92,6 @@ class MainActivity : AppCompatActivity(), NetworkErrorViewModel.Callback {
         OffloadThread.Instance().post {
             wiFiService.checkNetwork()
         }
-        updateFragment(Pages.NETWORK_ERROR)
     }
 
     override fun onStop() {
@@ -122,7 +116,8 @@ class MainActivity : AppCompatActivity(), NetworkErrorViewModel.Callback {
     }
 
     private fun initializeViewModels() {
-        dataViewerViewModel = DataViewerViewModel(forzaService)
+        _dataViewerViewModel.forzaService = forzaService
+        _networkErrorViewModel.setCallback(this)
     }
 
     private fun removeObservers() {
@@ -149,15 +144,15 @@ class MainActivity : AppCompatActivity(), NetworkErrorViewModel.Callback {
             }
 
             Pages.NETWORK_INFO -> {
-                fragment = NetworkInfoFragment(_networkInfoViewModel)
+                fragment = NetworkInfoFragment()
             }
 
             Pages.NETWORK_ERROR -> {
-                fragment = NetworkErrorFragment(_networkErrorViewModel)
+                fragment = NetworkErrorFragment()
             }
 
             Pages.DATA_VIEWER -> {
-                fragment = DataViewerFragment(dataViewerViewModel)
+                fragment = DataViewerFragment()
             }
         }
         supportFragmentManager.beginTransaction()
