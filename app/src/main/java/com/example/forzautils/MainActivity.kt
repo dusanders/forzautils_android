@@ -75,7 +75,7 @@ class MainActivity : AppCompatActivity(), NetworkErrorViewModel.Callback {
     }
 
     private val fragmentObserver: Observer<Pages> = Observer { page ->
-        updateFragment(page)
+//        updateFragment(page)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -97,6 +97,7 @@ class MainActivity : AppCompatActivity(), NetworkErrorViewModel.Callback {
         OffloadThread.Instance().post {
             wiFiService.checkNetwork()
         }
+        updateFragment(Pages.NETWORK_ERROR)
     }
 
     override fun onStop() {

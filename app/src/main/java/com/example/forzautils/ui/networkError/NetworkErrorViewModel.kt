@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 class NetworkErrorViewModel(
     private val callback: Callback
 ) : ViewModel() {
+
     interface Callback {
         fun onRetryNetworkClicked()
     }

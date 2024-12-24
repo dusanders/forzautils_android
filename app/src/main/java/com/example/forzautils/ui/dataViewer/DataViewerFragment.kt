@@ -5,26 +5,26 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import com.example.forzautils.R
 import com.example.forzautils.ui.dataViewer.dataOptions.DataOptionsFragment
 import com.example.forzautils.ui.dataViewer.dataOptions.DataOptionsViewModel
+import com.example.forzautils.ui.dataViewer.hpTorque.HpTorqueFragment
+import com.example.forzautils.ui.dataViewer.hpTorque.HpTorqueViewModel
+import com.example.forzautils.ui.dataViewer.hpTorque.HpTorqueViewModelFactory
 
 class DataViewerFragment(private val viewModel: DataViewerViewModel) : Fragment(),
     DataOptionsViewModel.Callback {
 
     private lateinit var dataOptionsViewModel: DataOptionsViewModel
+    private lateinit var hpTorqueViewModel: HpTorqueViewModel
     private lateinit var view: View
 
     private val dataDisplayObserver: Observer<DataViewerViewModel.DataDisplay> =
         Observer { display ->
             setDisplay(display)
         }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        dataOptionsViewModel = DataOptionsViewModel(this)
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -53,6 +53,12 @@ class DataViewerFragment(private val viewModel: DataViewerViewModel) : Fragment(
     }
 
     private fun initializeViewModel() {
+        dataOptionsViewModel = DataOptionsViewModel(this)
+        val hpVm: HpTorqueViewModel by viewModels<HpTorqueViewModel> {
+            HpTorqueViewModelFactory(viewModel.forzaService)
+        }
+        hpTorqueViewModel = hpVm
+
         viewModel.currentDataDisplay.observe(this, dataDisplayObserver)
     }
 
@@ -64,7 +70,7 @@ class DataViewerFragment(private val viewModel: DataViewerViewModel) : Fragment(
             }
 
             DataViewerViewModel.DataDisplay.HP_TORQUE -> {
-                fragment = DataOptionsFragment(dataOptionsViewModel)
+                fragment = HpTorqueFragment(hpTorqueViewModel)
             }
         }
         parentFragmentManager.beginTransaction()

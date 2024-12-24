@@ -20,7 +20,7 @@ class DataOptionsFragment(private val viewModel: DataOptionsViewModel) : Fragmen
     ): View {
         view = inflater.inflate(R.layout.fragment_data_options, container, false)
         attachClickListeners()
-        return view;
+        return view
     }
 
     private fun attachClickListeners() {

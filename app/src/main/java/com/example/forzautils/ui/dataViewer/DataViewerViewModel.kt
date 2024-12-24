@@ -6,7 +6,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.forzautils.services.ForzaService
 
-class DataViewerViewModel(private val forzaService: ForzaService) : ViewModel() {
+class DataViewerViewModel(val forzaService: ForzaService) : ViewModel() {
     enum class DataDisplay {
         OPTIONS_LIST,
         HP_TORQUE
