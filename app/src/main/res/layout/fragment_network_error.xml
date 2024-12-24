@@ -5,6 +5,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:gravity="center"
+    android:paddingHorizontal="30sp"
     tools:context=".ui.networkError.NetworkErrorFragment">
 
     <TextView
@@ -12,6 +13,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:gravity="center"
+        android:layout_marginBottom="30sp"
+        android:lineHeight="23sp"
         android:text="@string/networkError_desc" />
 
     <Button

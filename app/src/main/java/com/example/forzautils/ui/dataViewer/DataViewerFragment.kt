@@ -5,20 +5,21 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import com.example.forzautils.R
 import com.example.forzautils.ui.dataViewer.dataOptions.DataOptionsFragment
 import com.example.forzautils.ui.dataViewer.dataOptions.DataOptionsViewModel
 import com.example.forzautils.ui.dataViewer.hpTorque.HpTorqueFragment
 import com.example.forzautils.ui.dataViewer.hpTorque.HpTorqueViewModel
-import com.example.forzautils.ui.dataViewer.hpTorque.HpTorqueViewModelFactory
 
-class DataViewerFragment(private val viewModel: DataViewerViewModel) : Fragment(),
+class DataViewerFragment : Fragment(),
     DataOptionsViewModel.Callback {
 
-    private lateinit var dataOptionsViewModel: DataOptionsViewModel
-    private lateinit var hpTorqueViewModel: HpTorqueViewModel
+    private val viewModel: DataViewerViewModel by activityViewModels()
+    private val hpTorqueViewModel: HpTorqueViewModel by activityViewModels()
+    private val dataOptionsViewModel: DataOptionsViewModel by activityViewModels()
+
     private lateinit var view: View
 
     private val dataDisplayObserver: Observer<DataViewerViewModel.DataDisplay> =
@@ -53,24 +54,20 @@ class DataViewerFragment(private val viewModel: DataViewerViewModel) : Fragment(
     }
 
     private fun initializeViewModel() {
-        dataOptionsViewModel = DataOptionsViewModel(this)
-        val hpVm: HpTorqueViewModel by viewModels<HpTorqueViewModel> {
-            HpTorqueViewModelFactory(viewModel.forzaService)
-        }
-        hpTorqueViewModel = hpVm
-
         viewModel.currentDataDisplay.observe(this, dataDisplayObserver)
+        hpTorqueViewModel.setForzaService(viewModel.forzaService)
+        dataOptionsViewModel.setCallback(this)
     }
 
     private fun setDisplay(data: DataViewerViewModel.DataDisplay) {
-        var fragment: Fragment = DataOptionsFragment(dataOptionsViewModel)
+        var fragment: Fragment = DataOptionsFragment()
         when (data) {
             DataViewerViewModel.DataDisplay.OPTIONS_LIST -> {
                 // no-op : we default to options list
             }
 
             DataViewerViewModel.DataDisplay.HP_TORQUE -> {
-                fragment = HpTorqueFragment(hpTorqueViewModel)
+                fragment = HpTorqueFragment()
             }
         }
         parentFragmentManager.beginTransaction()

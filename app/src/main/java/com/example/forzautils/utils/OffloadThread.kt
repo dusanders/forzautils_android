@@ -21,11 +21,13 @@ class OffloadThread private constructor() {
         _handlerThread.start()
         _handler = Handler(_handlerThread.looper)
     }
+
     fun interrupt() {
         _handlerThread.interrupt()
     }
+
     fun post(runnable: Runnable) {
-        if(_handlerThread.isInterrupted) {
+        if (_handlerThread.isInterrupted) {
             Log.d(_tag, "Handler thread is interrupted...")
             _handlerThread = HandlerThread(_tag)
             _handlerThread.start()

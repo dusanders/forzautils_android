@@ -1,17 +1,18 @@
 package com.example.forzautils.ui.networkError
 
-import androidx.fragment.app.viewModels
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import com.example.forzautils.R
 
-class NetworkErrorFragment(private val viewModel: NetworkErrorViewModel) : Fragment() {
+class NetworkErrorFragment() : Fragment() {
 
     private lateinit var view: View
+    private val viewModel: NetworkErrorViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
