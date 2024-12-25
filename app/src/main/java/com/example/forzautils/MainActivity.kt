@@ -78,6 +78,7 @@ class MainActivity : AppCompatActivity(), NetworkErrorViewModel.Callback {
         enableEdgeToEdge()
         initializeServices()
         initializeViewModels()
+        attachObservers()
         setContentView(R.layout.activity_main)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -88,19 +89,19 @@ class MainActivity : AppCompatActivity(), NetworkErrorViewModel.Callback {
 
     override fun onResume() {
         super.onResume()
-        attachObservers()
         OffloadThread.Instance().post {
             wiFiService.checkNetwork()
         }
     }
 
-    override fun onStop() {
-        super.onStop()
+    override fun onDestroy() {
+        super.onDestroy()
         removeObservers()
         wiFiService.stop()
         forzaService.stop()
         OffloadThread.Instance().interrupt()
     }
+
 
     override fun onRetryNetworkClicked() {
         Log.d(_tag, "Network error - retry clicked")
