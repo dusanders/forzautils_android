@@ -13,4 +13,5 @@
     <string name="networkError_desc">There appears to be an error with your WiFi settings as we are unable to find the current WiFi address. Please ensure WiFi is enabled and the device is connected to the same network as Forza.</string>
     <string name="data_options_dynoBtn">HP/Torque Ratings</string>
     <string name="generic_waitingForForzaData">Waiting for Forza data</string>
+    <string name="generic_gear">Gear: </string>
 </resources>

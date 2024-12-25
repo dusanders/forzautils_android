@@ -8,7 +8,12 @@ import com.example.forzautils.services.ForzaService
 import forza.telemetry.ForzaTelemetryApi
 
 class HpTorqueViewModel : ViewModel() {
+    interface Callback {
+        fun onBackClicked()
+    }
+
     private lateinit var forzaService: ForzaService
+    private var callback: Callback? = null
 
     private val _hp: MutableLiveData<Float> = MutableLiveData(0f)
     val hp: LiveData<Float> get() = _hp;
@@ -29,6 +34,14 @@ class HpTorqueViewModel : ViewModel() {
     override fun onCleared() {
         super.onCleared()
         removeObservers()
+    }
+
+    fun setCallback(callback: Callback){
+        this.callback = callback
+    }
+
+    fun onBackClick() {
+        callback?.onBackClicked()
     }
 
     fun setForzaService(forzaService: ForzaService) {

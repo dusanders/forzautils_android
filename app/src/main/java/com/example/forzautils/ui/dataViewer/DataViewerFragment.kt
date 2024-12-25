@@ -14,7 +14,7 @@ import com.example.forzautils.ui.dataViewer.hpTorque.HpTorqueFragment
 import com.example.forzautils.ui.dataViewer.hpTorque.HpTorqueViewModel
 
 class DataViewerFragment : Fragment(),
-    DataOptionsViewModel.Callback {
+    DataOptionsViewModel.Callback, HpTorqueViewModel.Callback {
 
     private val viewModel: DataViewerViewModel by activityViewModels()
     private val hpTorqueViewModel: HpTorqueViewModel by activityViewModels()
@@ -45,6 +45,9 @@ class DataViewerFragment : Fragment(),
         destroyViewModel()
     }
 
+    override fun onBackClicked() {
+        setDisplay(DataViewerViewModel.DataDisplay.OPTIONS_LIST)
+    }
     override fun onHpTorqueClick() {
         viewModel.setDataDisplay(DataViewerViewModel.DataDisplay.HP_TORQUE)
     }
@@ -57,6 +60,7 @@ class DataViewerFragment : Fragment(),
         viewModel.currentDataDisplay.observe(this, dataDisplayObserver)
         hpTorqueViewModel.setForzaService(viewModel.forzaService)
         dataOptionsViewModel.setCallback(this)
+        hpTorqueViewModel.setCallback(this)
     }
 
     private fun setDisplay(data: DataViewerViewModel.DataDisplay) {

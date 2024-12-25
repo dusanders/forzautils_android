@@ -60,14 +60,12 @@ class HpTorqueFragment : Fragment() {
     }
 
     private fun addLineGraph(view: LinearLayout) {
-        val lineGraph = LineChart(context)
+        val lineGraph = colorLineGraph(LineChart(context), "test")
         lineGraph.layoutParams = ViewGroup.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
+            resources.getDimension(R.dimen.hpTorque_lineChartHeight).toInt()
         )
-        val desc = Description()
-        desc.text = "Test Description"
-        lineGraph.description = desc
+
 
         val values = ArrayList<Entry>()
         values.add(Entry(0f,0f))
@@ -82,6 +80,19 @@ class HpTorqueFragment : Fragment() {
         lineGraph.data = dataSets
 
         view.addView(lineGraph)
+    }
+
+    private fun colorLineGraph(lineGraph: LineChart, desc: String): LineChart {
+        val textColor = resources.getColor(R.color.hpTorque_text, context?.theme)
+        lineGraph.description.textColor = textColor
+        lineGraph.xAxis.textColor = textColor
+        lineGraph.axisLeft.textColor = textColor
+        lineGraph.legend.textColor = textColor
+        val graphDesc = Description()
+        graphDesc.text = desc
+        graphDesc.textColor = textColor
+        lineGraph.description = graphDesc
+        return lineGraph
     }
 
     private fun attachObservers() {
