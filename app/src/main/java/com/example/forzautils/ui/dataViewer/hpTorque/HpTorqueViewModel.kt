@@ -12,20 +12,18 @@ class HpTorqueViewModel : ViewModel() {
         fun onBackClicked()
     }
 
+    data class HpTqData (
+        var hp: Float = 0f,
+        var tq: Float = 0f,
+        var rpm: Float = 0f,
+        var gear: Int = 0
+    )
+
     private lateinit var forzaService: ForzaService
     private var callback: Callback? = null
 
-    private val _hp: MutableLiveData<Float> = MutableLiveData(0f)
-    val hp: LiveData<Float> get() = _hp;
-
-    private val _torque: MutableLiveData<Float> = MutableLiveData(0f)
-    val torque: LiveData<Float> get() = _torque
-
-    private val _rpm: MutableLiveData<Float> = MutableLiveData(0f)
-    val rpm: LiveData<Float> get() = _rpm
-
-    private val _gear: MutableLiveData<Int> = MutableLiveData(0)
-    val gear: LiveData<Int> get() = _gear
+    private val _hpTqData: MutableLiveData<HpTqData> = MutableLiveData()
+    val hpTqData: LiveData<HpTqData> get() = _hpTqData
 
     private val dataObserver: Observer<ForzaTelemetryApi?> = Observer { data ->
         parseData(data)
@@ -58,20 +56,27 @@ class HpTorqueViewModel : ViewModel() {
     }
 
     private fun parseData(data: ForzaTelemetryApi?) {
+        val dataEntry = HpTqData()
         data?.horsePower.let { it ->
             it?.let { hp ->
-                _hp.postValue(hp)
+                dataEntry.hp = hp
             }
         }
         data?.torque.let { it ->
             it?.let { torque ->
-                _torque.postValue(torque)
+                dataEntry.tq = torque
             }
         }
         data?.currentEngineRpm.let { it ->
             it?.let { rpm ->
-                _rpm.postValue(rpm)
+                dataEntry.rpm = rpm
             }
         }
+        data?.gear.let { it ->
+            it?.let { gear ->
+                dataEntry.gear = gear
+            }
+        }
+        _hpTqData.postValue(dataEntry)
     }
 }
