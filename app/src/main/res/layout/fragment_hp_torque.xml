@@ -51,7 +51,7 @@
         android:id="@+id/hpTorque_scrollView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingTop="@dimen/btnSize_med">
+        android:layout_marginTop="@dimen/btnSize_med">
         <LinearLayout
             android:id="@+id/hpTorque_curvesRoot"
             android:layout_width="match_parent"
