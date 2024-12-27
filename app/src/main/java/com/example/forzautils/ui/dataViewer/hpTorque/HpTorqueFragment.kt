@@ -1,6 +1,9 @@
 package com.example.forzautils.ui.dataViewer.hpTorque
 
 import android.os.Bundle
+import android.os.Handler
+import android.os.HandlerThread
+import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -36,12 +39,7 @@ class HpTorqueFragment : Fragment() {
     private var charts: ArrayList<LineChart> = ArrayList()
     private var hpTqvValues: ArrayList<HpTqValueList> = ArrayList()
     private val forzaDataObserver = Observer<HpTorqueViewModel.HpTqData> { data ->
-        if (data.gear < lastGear) {
-            Log.d(_tag, "Ignore downshift $lastGear -> ${data.gear}")
-            return@Observer
-        }
-        if (data.rpm < lastRpm) {
-            Log.d(_tag, "ignore decel $lastRpm -> ${data.rpm}")
+        if (data.gear < 1 || data.gear > 7) {
             return@Observer
         }
         lastGear = data.gear
@@ -69,15 +67,17 @@ class HpTorqueFragment : Fragment() {
             .visibility = View.INVISIBLE
         view.findViewById<LinearLayout>(R.id.hpTorque_curvesRoot)
             .visibility = View.VISIBLE
-        addHpTorque(HpTorqueViewModel.HpTqData(100f, 123f, 1200f, 1))
-        addHpTorque(HpTorqueViewModel.HpTqData(123f, 140f, 1300f, 1))
-        addHpTorque(HpTorqueViewModel.HpTqData(134f, 150f, 1500f, 1))
-        addHpTorque(HpTorqueViewModel.HpTqData(110f, 109f, 1800f, 1))
-        addHpTorque(HpTorqueViewModel.HpTqData(90f, 54f, 2000f, 1))
-        addHpTorque(HpTorqueViewModel.HpTqData(300f, 210f, 1300f, 2))
-        addHpTorque(HpTorqueViewModel.HpTqData(310f,220f,1400f,2))
-        addHpTorque(HpTorqueViewModel.HpTqData(320f, 320f, 1500f, 2))
-        addHpTorque(HpTorqueViewModel.HpTqData(320f, 350f, 1600f, 2))
+
+        // TODO - Remove debug values
+//        addHpTorque(HpTorqueViewModel.HpTqData(100f, 123f, 1200f, 1))
+//        addHpTorque(HpTorqueViewModel.HpTqData(123f, 140f, 1300f, 1))
+//        addHpTorque(HpTorqueViewModel.HpTqData(134f, 150f, 1500f, 1))
+//        addHpTorque(HpTorqueViewModel.HpTqData(110f, 109f, 1800f, 1))
+//        addHpTorque(HpTorqueViewModel.HpTqData(90f, 54f, 2000f, 1))
+//        addHpTorque(HpTorqueViewModel.HpTqData(300f, 210f, 1300f, 2))
+//        addHpTorque(HpTorqueViewModel.HpTqData(310f,220f,1400f,2))
+//        addHpTorque(HpTorqueViewModel.HpTqData(320f, 320f, 1500f, 2))
+//        addHpTorque(HpTorqueViewModel.HpTqData(320f, 350f, 1600f, 2))
     }
 
     override fun onStop() {
@@ -96,38 +96,54 @@ class HpTorqueFragment : Fragment() {
                 )
         }
 
-        val chart: LineChart
-        if (charts.count() < gear) {
+        var chart: LineChart
+        while (charts.count() < gear) {
             chart = initializeLineChart(
                 LineChart(context),
                 String.format(
                     resources.getString(R.string.generic_gear),
-                    gear
+                    charts.count() + 1
                 )
             )
             charts.add(chart)
             addLineGraphToView(chart)
-        } else {
-            chart = charts[gear - 1]
         }
+        chart = charts[gear - 1]
         return chart
     }
 
     private fun addHpTorque(dataEntry: HpTorqueViewModel.HpTqData) {
-        if (hpTqvValues.size < dataEntry.gear) {
+        while (hpTqvValues.size < dataEntry.gear) {
             hpTqvValues.add(HpTqValueList())
         }
+        if(dataEntry.hp < 0) {
+            Log.d(_tag, "Ignore 0 horsepower packet")
+            return
+        }
         val hpTqValueList = hpTqvValues[dataEntry.gear - 1]
+        if(hpTqValueList.hpValues.isNotEmpty()) {
+            val lastRpmReading = hpTqValueList.hpValues.last().x
+            if(lastRpmReading > dataEntry.rpm){
+                Log.d(_tag, "Ignore decel in ${dataEntry.gear} @ $lastRpmReading -> ${dataEntry.rpm}")
+                return
+            }
+            val nextRpm = lastRpmReading + 300;
+            if(dataEntry.rpm < nextRpm){
+                return
+            }
+        }
+        Log.d(_tag, "adding ${dataEntry.gear} @ ${dataEntry.rpm}")
         hpTqValueList.hpValues.add(Entry(dataEntry.rpm, dataEntry.hp))
         hpTqValueList.tqValues.add(Entry(dataEntry.rpm, dataEntry.tq))
 
         val chart = getChartForGear(dataEntry.gear)
-        val hpDataSet = chart.data.getDataSetByIndex(0) as LineDataSet
-        val torqueDataSet = chart.data.getDataSetByIndex(1) as LineDataSet
+        val hpDataSet = chart.data.dataSets[0] as LineDataSet
+        val torqueDataSet = chart.data.dataSets[1] as LineDataSet
 
         hpDataSet.values = hpTqValueList.hpValues
         torqueDataSet.values = hpTqValueList.tqValues
 
+        chart.invalidate()
         chart.data.notifyDataChanged()
         chart.notifyDataSetChanged()
     }
@@ -138,6 +154,7 @@ class HpTorqueFragment : Fragment() {
         lineGraph.description.textColor = textColor
         lineGraph.xAxis.textColor = textColor
         lineGraph.axisLeft.textColor = textColor
+        lineGraph.axisRight.textColor = textColor
         lineGraph.legend.textColor = textColor
         val graphDesc = Description()
         graphDesc.text = desc
@@ -151,12 +168,11 @@ class HpTorqueFragment : Fragment() {
     private fun initializeChartDataSets(lineGraph: LineChart): LineChart {
         val hpEntries = ArrayList<Entry>()
         val hpDataSet = LineDataSet(hpEntries, resources.getString(R.string.generic_horsepower))
-        hpDataSet.axisDependency = YAxis.AxisDependency.LEFT
         hpDataSet.color = resources.getColor(R.color.hpTorque_hpLine, context?.theme)
+        hpDataSet.axisDependency = YAxis.AxisDependency.RIGHT
 
         val tqEntries = ArrayList<Entry>()
         val tqDataSet = LineDataSet(tqEntries, resources.getString(R.string.generic_torque))
-        tqDataSet.axisDependency = YAxis.AxisDependency.LEFT
         tqDataSet.color = resources.getColor(R.color.hpTorque_torqueLine, context?.theme)
 
         lineGraph.data = LineData(hpDataSet, tqDataSet)
@@ -171,5 +187,12 @@ class HpTorqueFragment : Fragment() {
 
     private fun removeObservers() {
         viewModel.hpTqData.removeObserver(forzaDataObserver)
+    }
+
+    private fun runOnMainUi(runnable: Runnable) {
+        if(isAdded) {
+            activity?.runOnUiThread(runnable)
+                ?: Log.w(_tag, "Failed to run on UI Thread!! Fragment not attached!")
+        }
     }
 }
