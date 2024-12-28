@@ -1,5 +1,6 @@
 package com.example.forzautils.ui.dataViewer.hpTorque
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
@@ -32,7 +33,8 @@ class HpTorqueViewModel : ViewModel() {
         var hp: Float = 0f,
         var tq: Float = 0f
     )
-
+    private var DID_DEBUG = false;
+    private val _tag = "HpTorqueViewModel"
     private lateinit var forzaService: ForzaService
     private var callback: Callback? = null
 
@@ -51,6 +53,8 @@ class HpTorqueViewModel : ViewModel() {
     }
 
     fun ADD_DEBUG() {
+        if(DID_DEBUG) return
+        DID_DEBUG = true;
         handleParsedData(HpTqData(100f, 423f, 1278f, 1))
         handleParsedData(HpTqData(123f, 440f, 1340f, 1))
         handleParsedData(HpTqData(134f, 450f, 1598f, 1))
@@ -68,6 +72,10 @@ class HpTorqueViewModel : ViewModel() {
         handleParsedData(HpTqData(310f, 220f, 1400f, 4))
         handleParsedData(HpTqData(320f, 320f, 1500f, 4))
         handleParsedData(HpTqData(320f, 350f, 1600f, 4))
+    }
+
+    fun clear() {
+        dataMap.clear()
     }
 
     fun setCallback(callback: Callback) {
@@ -103,11 +111,17 @@ class HpTorqueViewModel : ViewModel() {
                 data.tq
             )
         } else {
+            val avgTq = findAverage(dataMap[data.gear]!!.values.map { i -> i.tq })
+            val avgHp = findAverage(dataMap[data.gear]!!.values.map { i -> i.hp })
+            if(isOutlier(avgTq, data.tq) || isOutlier(avgHp, data.hp)) {
+                Log.w(_tag, "Skipping outlier ${data.hp} & ${data.tq}")
+                return
+            }
             val existingValues = gearMap[roundedRpm]
-            if (existingValues!!.hp != data.hp) {
+            if (existingValues!!.hp > data.hp) {
                 gearMap[roundedRpm]!!.hp = data.hp
             }
-            if (existingValues.tq != data.tq) {
+            if (existingValues.tq > data.tq) {
                 gearMap[roundedRpm]!!.tq = data.tq
             }
         }
@@ -118,6 +132,17 @@ class HpTorqueViewModel : ViewModel() {
 
     private fun parseData(data: ForzaTelemetryApi?) {
         if (data == null || data.gear < 1 || data.gear > 10) {
+            return
+        }
+        if (data.horsePower <= 0 || data.torque <= 0) {
+            return
+        }
+        if (data.throttle < 95) {
+            Log.w(_tag, "Skipping partial throttle")
+            return
+        }
+        if (data.clutch > 0) {
+            Log.w(_tag, "Skipping clutch")
             return;
         }
         val dataPacket = HpTqData(
@@ -127,6 +152,17 @@ class HpTorqueViewModel : ViewModel() {
             data.gear
         )
         handleParsedData(dataPacket)
+    }
+
+    private fun isOutlier(avg: Float, value: Float): Boolean {
+        val upperBound = avg + 20;
+        val lowerBound = avg - 20;
+        return value >= upperBound || value <= lowerBound
+    }
+    private fun findAverage(values: List<Float>): Float {
+        var runningTotal = 0f
+        values.forEach { value -> runningTotal += value }
+        return runningTotal / values.size
     }
 
     private fun roundToNearestRpmRange(rpm: Float): Int {

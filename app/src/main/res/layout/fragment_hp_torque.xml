@@ -20,6 +20,13 @@
             app:icon="@drawable/icon_back"
             app:iconGravity="textStart"
             app:iconTint="#fff" />
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/hpTorque_clearBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginEnd="10sp"
+            android:text="@string/generic_clear"/>
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
