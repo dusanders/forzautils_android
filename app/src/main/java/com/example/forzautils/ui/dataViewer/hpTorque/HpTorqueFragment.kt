@@ -83,6 +83,7 @@ class HpTorqueFragment : Fragment() {
             chartFactory.clear()
         }
     }
+
     private fun redrawGraphForGear(gear: Int) {
         val rpmMap = viewModel.dataMap[gear]
         if (rpmMap == null) {
@@ -144,9 +145,7 @@ class HpTorqueFragment : Fragment() {
     }
 
     private fun maybeAddChart(chart: ChartFactory.HpTqChart) {
-        val found = view.findViewById<LinearLayout>(R.id.hpTorque_curvesRoot)
-            .findViewById<LineChart>(chart.id)
-        if(found == null) {
+        fun doAddView() {
             val params = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 resources.getDimension(R.dimen.hpTorque_lineChartHeight).toInt()
@@ -155,6 +154,9 @@ class HpTorqueFragment : Fragment() {
             view.findViewById<LinearLayout>(R.id.hpTorque_curvesRoot)
                 .addView(chart.chart, params)
         }
+        view.findViewById<LinearLayout>(R.id.hpTorque_curvesRoot)
+            .findViewById<LineChart>(chart.id)
+            ?: doAddView()
     }
 
     private fun attachObservers() {
