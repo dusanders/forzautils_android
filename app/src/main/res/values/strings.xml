@@ -16,4 +16,5 @@
     <string name="generic_gear">Gear: %1$d</string>
     <string name="generic_horsepower">Horsepower</string>
     <string name="generic_torque">Torque</string>
+    <string name="generic_clear">Clear</string>
 </resources>

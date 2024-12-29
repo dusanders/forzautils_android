@@ -8,5 +8,5 @@
     <dimen name="btnSize_small">35sp</dimen>
     <dimen name="btnSize_med">50sp</dimen>
     <dimen name="btnSize_large">75sp</dimen>
-    <dimen name="hpTorque_lineChartHeight">120sp</dimen>
+    <dimen name="hpTorque_lineChartHeight">200sp</dimen>
 </resources>

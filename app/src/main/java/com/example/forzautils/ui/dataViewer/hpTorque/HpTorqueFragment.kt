@@ -1,55 +1,45 @@
 package com.example.forzautils.ui.dataViewer.hpTorque
 
 import android.os.Bundle
-import android.os.Handler
-import android.os.HandlerThread
-import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
+import android.view.View.GONE
 import android.view.View.OnClickListener
+import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.widget.LinearLayout
+import android.widget.ScrollView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import com.example.forzautils.R
 import com.github.mikephil.charting.charts.LineChart
-import com.github.mikephil.charting.components.Description
-import com.github.mikephil.charting.components.YAxis
 import com.github.mikephil.charting.data.Entry
-import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.google.android.material.button.MaterialButton
 
 class HpTorqueFragment : Fragment() {
-    private data class HpTqValueList(
-        val hpValues: ArrayList<Entry> = ArrayList(),
-        val tqValues: ArrayList<Entry> = ArrayList()
-    )
-
     private val _tag = "HpTorqueFragment"
+    private var isShowingCurves: Boolean = false
     private val viewModel: HpTorqueViewModel by activityViewModels()
     private lateinit var view: View
+    private lateinit var chartFactory: ChartFactory
 
-    private var lastGear: Int = 1
-    private var lastRpm: Float = 0f
-    private var lastHp: Float = 0f
-    private var lastTorque: Float = 0f
-    private var charts: ArrayList<LineChart> = ArrayList()
-    private var hpTqvValues: ArrayList<HpTqValueList> = ArrayList()
-    private val forzaDataObserver = Observer<HpTorqueViewModel.HpTqData> { data ->
-        if (data.gear < 1 || data.gear > 7) {
-            return@Observer
+    private val forzaObserver = Observer<HpTorqueViewModel.DataUpdate> { updated ->
+        runOnUiThread {
+            redrawGraphForGear(updated.gear)
         }
-        lastGear = data.gear
-        lastRpm = data.rpm
-        lastTorque = data.tq
-        lastHp = data.hp
-        addHpTorque(data)
     }
-    private val backButtonListener = OnClickListener { v ->
+
+    private val backButtonListener = OnClickListener { _ ->
         viewModel.onBackClick()
+    }
+
+    private val clearButtonListener = OnClickListener { _ ->
+        viewModel.clear()
+        showWaitingForData()
+        clearCharts()
     }
 
     override fun onCreateView(
@@ -57,142 +47,120 @@ class HpTorqueFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         view = inflater.inflate(R.layout.fragment_hp_torque, container, false)
+        chartFactory = ChartFactory(requireContext())
+        showWaitingForData()
         return view
     }
 
     override fun onResume() {
         super.onResume()
+        if (viewModel.dataMap.isEmpty()) {
+            showWaitingForData()
+        } else {
+            showCurves()
+            rebuildAllGraphs()
+        }
         attachObservers()
-        view.findViewById<LinearLayout>(R.id.hpTorque_waitForDataLayout)
-            .visibility = View.INVISIBLE
-        view.findViewById<LinearLayout>(R.id.hpTorque_curvesRoot)
-            .visibility = View.VISIBLE
-
-        // TODO - Remove debug values
-//        addHpTorque(HpTorqueViewModel.HpTqData(100f, 123f, 1200f, 1))
-//        addHpTorque(HpTorqueViewModel.HpTqData(123f, 140f, 1300f, 1))
-//        addHpTorque(HpTorqueViewModel.HpTqData(134f, 150f, 1500f, 1))
-//        addHpTorque(HpTorqueViewModel.HpTqData(110f, 109f, 1800f, 1))
-//        addHpTorque(HpTorqueViewModel.HpTqData(90f, 54f, 2000f, 1))
-//        addHpTorque(HpTorqueViewModel.HpTqData(300f, 210f, 1300f, 2))
-//        addHpTorque(HpTorqueViewModel.HpTqData(310f,220f,1400f,2))
-//        addHpTorque(HpTorqueViewModel.HpTqData(320f, 320f, 1500f, 2))
-//        addHpTorque(HpTorqueViewModel.HpTqData(320f, 350f, 1600f, 2))
     }
 
     override fun onStop() {
         super.onStop()
         removeObservers()
+        clearCharts()
     }
 
-    private fun getChartForGear(gear: Int): LineChart {
-        fun addLineGraphToView(lineGraph: LineChart) {
+    private fun clearCharts() {
+        runOnUiThread {
             view.findViewById<LinearLayout>(R.id.hpTorque_curvesRoot)
-                .addView(
-                    lineGraph, LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT,
-                        resources.getDimension(R.dimen.hpTorque_lineChartHeight).toInt()
-                    )
-                )
+                .removeAllViews()
+            chartFactory.clear()
         }
-
-        var chart: LineChart
-        while (charts.count() < gear) {
-            chart = initializeLineChart(
-                LineChart(context),
-                String.format(
-                    resources.getString(R.string.generic_gear),
-                    charts.count() + 1
-                )
-            )
-            charts.add(chart)
-            addLineGraphToView(chart)
-        }
-        chart = charts[gear - 1]
-        return chart
     }
 
-    private fun addHpTorque(dataEntry: HpTorqueViewModel.HpTqData) {
-        while (hpTqvValues.size < dataEntry.gear) {
-            hpTqvValues.add(HpTqValueList())
-        }
-        if(dataEntry.hp < 0) {
-            Log.d(_tag, "Ignore 0 horsepower packet")
+    private fun redrawGraphForGear(gear: Int) {
+        val rpmMap = viewModel.dataMap[gear]
+        if (rpmMap == null) {
+            Log.w(_tag, "ViewModel missing data for $gear")
             return
         }
-        val hpTqValueList = hpTqvValues[dataEntry.gear - 1]
-        if(hpTqValueList.hpValues.isNotEmpty()) {
-            val lastRpmReading = hpTqValueList.hpValues.last().x
-            if(lastRpmReading > dataEntry.rpm){
-                Log.d(_tag, "Ignore decel in ${dataEntry.gear} @ $lastRpmReading -> ${dataEntry.rpm}")
-                return
-            }
-            val nextRpm = lastRpmReading + 300;
-            if(dataEntry.rpm < nextRpm){
-                return
-            }
+
+        val chart = chartFactory.getChartForGear(gear)
+        Log.d(_tag, "Chart for $gear")
+        val hpData = chart.chart.data.dataSets[0] as LineDataSet
+        val tqData = chart.chart.data.dataSets[1] as LineDataSet
+
+        val sortedRpms = rpmMap.keys.sorted()
+
+        hpData.values = sortedRpms.map { key ->
+            Entry(key.toFloat(), rpmMap[key]!!.hp)
         }
-        Log.d(_tag, "adding ${dataEntry.gear} @ ${dataEntry.rpm}")
-        hpTqValueList.hpValues.add(Entry(dataEntry.rpm, dataEntry.hp))
-        hpTqValueList.tqValues.add(Entry(dataEntry.rpm, dataEntry.tq))
-
-        val chart = getChartForGear(dataEntry.gear)
-        val hpDataSet = chart.data.dataSets[0] as LineDataSet
-        val torqueDataSet = chart.data.dataSets[1] as LineDataSet
-
-        hpDataSet.values = hpTqValueList.hpValues
-        torqueDataSet.values = hpTqValueList.tqValues
-
-        chart.invalidate()
-        chart.data.notifyDataChanged()
-        chart.notifyDataSetChanged()
+        tqData.values = sortedRpms.map { key ->
+            Entry(key.toFloat(), rpmMap[key]!!.tq)
+        }
+        invalidateChart(chart)
     }
 
-    private fun initializeLineChart(chart: LineChart, desc: String): LineChart {
-        val lineGraph = initializeChartDataSets(chart)
-        val textColor = resources.getColor(R.color.hpTorque_text, context?.theme)
-        lineGraph.description.textColor = textColor
-        lineGraph.xAxis.textColor = textColor
-        lineGraph.axisLeft.textColor = textColor
-        lineGraph.axisRight.textColor = textColor
-        lineGraph.legend.textColor = textColor
-        val graphDesc = Description()
-        graphDesc.text = desc
-        graphDesc.textColor = textColor
-        lineGraph.description = graphDesc
-        lineGraph.setTouchEnabled(false)
-        lineGraph.setPinchZoom(false)
-        return lineGraph
+    private fun invalidateChart(chart: ChartFactory.HpTqChart) {
+        if (!isShowingCurves) {
+            showCurves()
+        }
+        maybeAddChart(chart)
+        chart.chart.invalidate()
+        chart.chart.data.notifyDataChanged()
+        chart.chart.notifyDataSetChanged()
     }
 
-    private fun initializeChartDataSets(lineGraph: LineChart): LineChart {
-        val hpEntries = ArrayList<Entry>()
-        val hpDataSet = LineDataSet(hpEntries, resources.getString(R.string.generic_horsepower))
-        hpDataSet.color = resources.getColor(R.color.hpTorque_hpLine, context?.theme)
-        hpDataSet.axisDependency = YAxis.AxisDependency.RIGHT
+    private fun rebuildAllGraphs() {
+        val sortedGearKeys = viewModel.dataMap.keys.sorted()
+        sortedGearKeys.forEach { gear ->
+            redrawGraphForGear(gear)
+        }
+    }
 
-        val tqEntries = ArrayList<Entry>()
-        val tqDataSet = LineDataSet(tqEntries, resources.getString(R.string.generic_torque))
-        tqDataSet.color = resources.getColor(R.color.hpTorque_torqueLine, context?.theme)
+    private fun runOnUiThread(runnable: Runnable) {
+        activity?.runOnUiThread(runnable)
+    }
 
-        lineGraph.data = LineData(hpDataSet, tqDataSet)
-        return lineGraph
+    private fun showWaitingForData() {
+        isShowingCurves = false
+        view.findViewById<LinearLayout>(R.id.hpTorque_waitForDataLayout)
+            .visibility = VISIBLE
+        view.findViewById<ScrollView>(R.id.hpTorque_scrollView)
+            .visibility = GONE
+    }
+
+    private fun showCurves() {
+        isShowingCurves = true
+        view.findViewById<LinearLayout>(R.id.hpTorque_waitForDataLayout)
+            .visibility = GONE
+        view.findViewById<ScrollView>(R.id.hpTorque_scrollView)
+            .visibility = VISIBLE
+    }
+
+    private fun maybeAddChart(chart: ChartFactory.HpTqChart) {
+        fun doAddView() {
+            val params = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                resources.getDimension(R.dimen.hpTorque_lineChartHeight).toInt()
+            )
+            params.setMargins(0, 20, 0, 20)
+            view.findViewById<LinearLayout>(R.id.hpTorque_curvesRoot)
+                .addView(chart.chart, params)
+        }
+        view.findViewById<LinearLayout>(R.id.hpTorque_curvesRoot)
+            .findViewById<LineChart>(chart.id)
+            ?: doAddView()
     }
 
     private fun attachObservers() {
-        viewModel.hpTqData.observe(this, forzaDataObserver)
+        viewModel.dataUpdated.observe(this, forzaObserver)
         view.findViewById<MaterialButton>(R.id.hpTorque_backButton)
             .setOnClickListener(backButtonListener)
+        view.findViewById<MaterialButton>(R.id.hpTorque_clearBtn)
+            .setOnClickListener(clearButtonListener)
     }
 
     private fun removeObservers() {
-        viewModel.hpTqData.removeObserver(forzaDataObserver)
-    }
-
-    private fun runOnMainUi(runnable: Runnable) {
-        if(isAdded) {
-            activity?.runOnUiThread(runnable)
-                ?: Log.w(_tag, "Failed to run on UI Thread!! Fragment not attached!")
-        }
+        viewModel.dataUpdated.removeObserver(forzaObserver)
     }
 }

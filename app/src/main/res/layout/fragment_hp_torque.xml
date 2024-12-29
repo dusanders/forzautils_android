@@ -7,15 +7,32 @@
     android:layout_height="match_parent"
     tools:context=".ui.dataViewer.hpTorque.HpTorqueFragment">
 
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/hpTorque_backButton"
-        android:layout_width="wrap_content"
+    <FrameLayout
+        android:layout_width="match_parent"
         android:layout_height="@dimen/btnSize_med"
-        app:backgroundTint="#00000000"
-        app:icon="@drawable/icon_back"
-        app:iconGravity="textStart"
-        app:iconTint="#fff" />
+        android:orientation="horizontal">
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/hpTorque_backButton"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="start"
+            app:backgroundTint="#00000000"
+            app:icon="@drawable/icon_back"
+            app:iconGravity="textStart"
+            app:iconTint="#fff" />
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/hpTorque_clearBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginEnd="10sp"
+            android:text="@string/generic_clear"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="@string/data_options_dynoBtn"/>
+    </FrameLayout>
 
 
     <LinearLayout
@@ -37,14 +54,20 @@
             android:indeterminate="true" />
     </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/hpTorque_curvesRoot"
+    <ScrollView
+        android:id="@+id/hpTorque_scrollView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:paddingTop="@dimen/btnSize_med"
-        android:visibility="invisible">
-    </LinearLayout>
+        android:layout_marginTop="@dimen/btnSize_med">
+        <LinearLayout
+            android:id="@+id/hpTorque_curvesRoot"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="10sp"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingTop="@dimen/btnSize_med">
+        </LinearLayout>
+    </ScrollView>
 
 </FrameLayout>
