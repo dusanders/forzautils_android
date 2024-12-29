@@ -7,35 +7,78 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import com.example.forzautils.ui.home.HomeFragment
-import com.example.forzautils.ui.home.HomeViewModel
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
+import com.example.forzautils.services.ForzaService
+import com.example.forzautils.services.WiFiService
+import com.example.forzautils.ui.dataViewer.DataViewerFragment
+import com.example.forzautils.ui.dataViewer.DataViewerViewModel
+import com.example.forzautils.ui.networkError.NetworkErrorFragment
+import com.example.forzautils.ui.networkError.NetworkErrorViewModel
+import com.example.forzautils.ui.networkInfo.NetworkInfoFragment
+import com.example.forzautils.ui.networkInfo.NetworkInfoViewModel
 import com.example.forzautils.ui.splash.SplashFragment
 import com.example.forzautils.ui.splash.SplashViewModel
+import com.example.forzautils.utils.Constants
 import com.example.forzautils.utils.OffloadThread
-import forza.telemetry.ForzaInterface
-import forza.telemetry.ForzaTelemetryApi
-import forza.telemetry.ForzaTelemetryBuilder
-import forza.telemetry.VehicleData
-import java.net.DatagramPacket
-import java.util.Timer
-import kotlin.concurrent.schedule
 
-class MainActivity : AppCompatActivity(), ForzaInterface {
+class MainActivity : AppCompatActivity(), NetworkErrorViewModel.Callback {
     enum class Pages {
         SPLASH,
-        HOME
+        DATA_VIEWER,
+        NETWORK_INFO,
+        NETWORK_ERROR
     }
 
-    private val _homeViewModel : HomeViewModel by viewModels()
-    private val _splashViewModel: SplashViewModel by viewModels()
-
     private val _tag: String = "MainActivity"
-    private var telemetryBuilder: ForzaTelemetryBuilder? = null
-    private var telemetryBuilderThread: Thread? = null
+
+    private val _networkInfoViewModel: NetworkInfoViewModel by viewModels()
+    private val _splashViewModel: SplashViewModel by viewModels()
+    private val _networkErrorViewModel: NetworkErrorViewModel by viewModels()
+    private val _dataViewerViewModel: DataViewerViewModel by viewModels()
+
+    private val currentFragment: MutableLiveData<Pages> = MutableLiveData(Pages.SPLASH)
+    private lateinit var wiFiService: WiFiService
+    private lateinit var forzaService: ForzaService
+
+    private val forzaListeningObserver: Observer<Boolean> = Observer { listening ->
+        Log.d(_tag, "ForzaListener now listening... $listening")
+        if (listening) {
+            wiFiService.inetState.value?.let { _networkInfoViewModel.setInetState(it) }
+            if (currentFragment.value == Pages.SPLASH) {
+                currentFragment.postValue(Pages.NETWORK_INFO)
+            }
+        }
+    }
+
+    private val wifiInetObserver: Observer<WiFiService.InetState> = Observer { inet ->
+        if (inet.ipString == Constants.DEFAULT_IP) {
+            currentFragment.postValue(Pages.NETWORK_ERROR)
+        } else {
+            forzaService.start()
+        }
+    }
+
+    private val forzaConnectedObserver: Observer<Boolean> = Observer { connected ->
+        Log.d(_tag, "Forza connected")
+    }
+
+    private val homeReadyBtnObserver: Observer<Boolean> = Observer { clicked ->
+        Log.d(_tag, "Home ready clicked")
+        currentFragment.postValue(Pages.DATA_VIEWER)
+    }
+
+    private val fragmentObserver: Observer<Pages> = Observer { page ->
+        updateFragment(page)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        initializeServices()
+        initializeViewModels()
+        attachObservers()
         setContentView(R.layout.activity_main)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -46,83 +89,75 @@ class MainActivity : AppCompatActivity(), ForzaInterface {
 
     override fun onResume() {
         super.onResume()
-        navigate(Pages.SPLASH)
-        ensureTelemetry()
-        _homeViewModel.inetState.observe(this, {inet ->
-            Log.d(_tag, "HomeViewModel got new inet ${inet.ipString} @ ${inet.port}")
-            _splashViewModel.setLoadingState(SplashViewModel.LoadingState.FINISHED)
-            navigate(Pages.HOME)
-        })
-        Timer(_tag, false).schedule(2000) {
-            _homeViewModel.updateIpInfo()
+        OffloadThread.Instance().post {
+            wiFiService.checkNetwork()
         }
     }
 
-    override fun onStop() {
-        super.onStop()
-        if(telemetryBuilderThread != null && telemetryBuilderThread!!.isAlive) {
-            Log.w(_tag, "onStop() - Stopping telemetry thread")
-            telemetryBuilderThread?.interrupt()
-        }
+    override fun onDestroy() {
+        super.onDestroy()
+        removeObservers()
+        wiFiService.stop()
+        forzaService.stop()
+        OffloadThread.Instance().interrupt()
     }
 
-    private fun ensureTelemetry() {
-        if(telemetryBuilder == null) {
-            telemetryBuilder = _homeViewModel.inetState.value?.port?.let { ForzaTelemetryBuilder(it) }
-            telemetryBuilder?.addListener(this)
-        }
-        if(telemetryBuilderThread == null) {
-            Log.w(_tag, "TelemetryBuilder Thread is null - starting new...")
-            telemetryBuilderThread = telemetryBuilder?.thread
-            OffloadThread.Instance()
-                .post({
-                    telemetryBuilderThread?.start()
-                })
-        } else if(!telemetryBuilderThread!!.isAlive) {
-            Log.w(_tag, "TelemetryBuilder thread is DEAD - starting...")
-            OffloadThread.Instance()
-                .post({
-                    telemetryBuilderThread?.start()
-                })
-        }
+
+    override fun onRetryNetworkClicked() {
+        Log.d(_tag, "Network error - retry clicked")
+        wiFiService.checkNetwork()
     }
 
-    private fun navigate(page: Pages) {
-        val transaction = supportFragmentManager.beginTransaction()
-        when(page) {
+    private fun initializeServices() {
+        wiFiService = WiFiService(
+            Constants.PORT,
+            baseContext
+        )
+        forzaService = ForzaService(wiFiService.port)
+    }
+
+    private fun initializeViewModels() {
+        _dataViewerViewModel.forzaService = forzaService
+        _networkErrorViewModel.setCallback(this)
+    }
+
+    private fun removeObservers() {
+        _networkInfoViewModel.readyBtnClicked.removeObserver(homeReadyBtnObserver)
+        wiFiService.inetState.removeObserver(wifiInetObserver)
+        forzaService.forzaListening.removeObserver(forzaListeningObserver)
+        forzaService.forzaConnected.removeObserver(forzaConnectedObserver)
+        currentFragment.removeObserver(fragmentObserver)
+    }
+
+    private fun attachObservers() {
+        _networkInfoViewModel.readyBtnClicked.observe(this, homeReadyBtnObserver)
+        wiFiService.inetState.observe(this, wifiInetObserver)
+        forzaService.forzaListening.observe(this, forzaListeningObserver)
+        forzaService.forzaConnected.observe(this, forzaConnectedObserver)
+        currentFragment.observe(this, fragmentObserver)
+    }
+
+    private fun updateFragment(page: Pages) {
+        var fragment: Fragment = SplashFragment(_splashViewModel)
+        when (page) {
             Pages.SPLASH -> {
-                transaction.replace(R.id.mainFragment_contentView, SplashFragment())
-                    .commit()
+                // no-op - we already set the fragment as the splash fragment
             }
-            Pages.HOME -> {
-                transaction.replace(R.id.mainFragment_contentView, HomeFragment())
-                    .commit()
-                runOnUiThread({
-                    _homeViewModel.version.observe(this) { selectedVersion ->
-                        Log.d(_tag, "Selected $selectedVersion")
-                    }
-                })
+
+            Pages.NETWORK_INFO -> {
+                fragment = NetworkInfoFragment()
+            }
+
+            Pages.NETWORK_ERROR -> {
+                fragment = NetworkErrorFragment()
+            }
+
+            Pages.DATA_VIEWER -> {
+                fragment = DataViewerFragment()
             }
         }
-    }
-
-    override fun onDataReceived(api: ForzaTelemetryApi?) {
-        TODO("Not yet implemented")
-    }
-
-    override fun onConnected(api: ForzaTelemetryApi?, packet: DatagramPacket?) {
-        TODO("Not yet implemented")
-    }
-
-    override fun onGamePaused() {
-        TODO("Not yet implemented")
-    }
-
-    override fun onGameUnpaused() {
-        TODO("Not yet implemented")
-    }
-
-    override fun onCarChanged(api: ForzaTelemetryApi?, data: VehicleData?) {
-        TODO("Not yet implemented")
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.mainFragment_contentView, fragment)
+            .commit()
     }
 }

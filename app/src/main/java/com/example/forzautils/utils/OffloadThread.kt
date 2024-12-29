@@ -11,8 +11,9 @@ class OffloadThread private constructor() {
             return _instance;
         }
     }
+
     private val _tag = "OffloadThread"
-    private val _handlerThread = HandlerThread(_tag)
+    private var _handlerThread = HandlerThread(_tag)
     private var _handler: Handler
 
     init {
@@ -20,7 +21,18 @@ class OffloadThread private constructor() {
         _handlerThread.start()
         _handler = Handler(_handlerThread.looper)
     }
+
+    fun interrupt() {
+        _handlerThread.interrupt()
+    }
+
     fun post(runnable: Runnable) {
+        if (_handlerThread.isInterrupted) {
+            Log.d(_tag, "Handler thread is interrupted...")
+            _handlerThread = HandlerThread(_tag)
+            _handlerThread.start()
+            _handler = Handler(_handlerThread.looper)
+        }
         _handler.post(runnable)
     }
 }

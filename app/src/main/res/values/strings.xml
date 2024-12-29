@@ -1,11 +1,20 @@
 <resources>
     <string name="app_name">ForzaUtils</string>
     <string name="splash_appName">Forza Utils</string>
-    <string name="home_btn_forzaVersion2023">Forza Motorsport (2023)</string>
-    <string name="home_btn_forzaVersion7">Forza 7</string>
-    <string name="home_wifi_error">Please connect to the same WiFi network as your Forza game.</string>
-    <string name="home_connection_text">Please forward Forza\'s telemetry data to:</string>
-    <string name="home_ip_label">IP: %1$s</string>
-    <string name="home_port_label">Port: %1$d</string>
-    <string name="home_telemetry_note">Note: If using SimHub, please instruct SimHub to forward telemetry data to the above Ip and Port!</string>
+    <string name="networkInfo_btn_ready">Ready</string>
+    <string name="forzaVersion2023">Forza Motorsport (2023)</string>
+    <string name="forzaVersion7">Forza 7</string>
+    <string name="networkInfo_wifi_error">Please connect to the same WiFi network as your Forza game.</string>
+    <string name="networkInfo_connection_text">Please forward Forza\'s telemetry data to:</string>
+    <string name="networkInfo_ip_label">IP: %1$s</string>
+    <string name="networkInfo_port_label">Port: %1$d</string>
+    <string name="networkInfo_telemetry_note">Note: If using SimHub, please instruct SimHub to forward telemetry data to the above Ip and Port!</string>
+    <string name="networkError_retryBtn">Retry</string>
+    <string name="networkError_desc">There appears to be an error with your WiFi settings as we are unable to find the current WiFi address. Please ensure WiFi is enabled and the device is connected to the same network as Forza.</string>
+    <string name="data_options_dynoBtn">HP/Torque Ratings</string>
+    <string name="generic_waitingForForzaData">Waiting for Forza data</string>
+    <string name="generic_gear">Gear: %1$d</string>
+    <string name="generic_horsepower">Horsepower</string>
+    <string name="generic_torque">Torque</string>
+    <string name="generic_clear">Clear</string>
 </resources>
