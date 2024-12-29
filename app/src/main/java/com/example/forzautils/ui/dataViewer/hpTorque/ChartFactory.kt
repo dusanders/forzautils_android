@@ -13,8 +13,17 @@ import com.github.mikephil.charting.data.LineDataSet
 class ChartFactory(
     val context: Context
 ) {
+    /**
+     * Holder for the LineChart instances
+     */
     data class HpTqChart(
+        /**
+         * LineChart instance of the graph View
+         */
         val chart: LineChart,
+        /**
+         * LineChart's View id value used in layout
+         */
         var id: Int
     )
 

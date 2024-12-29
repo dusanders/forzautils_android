@@ -1,8 +1,6 @@
 package com.example.forzautils.ui.dataViewer.hpTorque
 
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -56,7 +54,6 @@ class HpTorqueFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-
         if (viewModel.dataMap.isEmpty()) {
             showWaitingForData()
         } else {
@@ -64,10 +61,6 @@ class HpTorqueFragment : Fragment() {
             rebuildAllGraphs()
         }
         attachObservers()
-        // TODO - Remove debug values
-//        Handler(Looper.myLooper()!!).postDelayed({
-//            viewModel.ADD_DEBUG()
-//        }, 3000)
     }
 
     override fun onStop() {

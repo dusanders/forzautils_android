@@ -1,14 +1,13 @@
 package com.example.forzautils.ui.dataViewer.hpTorque
 
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
 import com.example.forzautils.services.ForzaService
 import forza.telemetry.ForzaTelemetryApi
-import kotlin.math.round
 
+// Alias these for easier code readability
 typealias Gear = Int
 typealias RPM = Int
 
@@ -16,13 +15,6 @@ class HpTorqueViewModel : ViewModel() {
     interface Callback {
         fun onBackClicked()
     }
-
-    private data class HpTqData(
-        var hp: Float = 0f,
-        val tq: Float = 0f,
-        val rpm: Float = 0f,
-        val gear: Int = 0
-    )
 
     data class DataUpdate(
         var gear: Int,
@@ -33,7 +25,7 @@ class HpTorqueViewModel : ViewModel() {
         var hp: Float = 0f,
         var tq: Float = 0f
     )
-    private var DID_DEBUG = false;
+
     private val _tag = "HpTorqueViewModel"
     private lateinit var forzaService: ForzaService
     private var callback: Callback? = null
@@ -50,28 +42,6 @@ class HpTorqueViewModel : ViewModel() {
     override fun onCleared() {
         super.onCleared()
         removeObservers()
-    }
-
-    fun ADD_DEBUG() {
-        if(DID_DEBUG) return
-        DID_DEBUG = true;
-        handleParsedData(HpTqData(100f, 423f, 1278f, 1))
-        handleParsedData(HpTqData(123f, 440f, 1340f, 1))
-        handleParsedData(HpTqData(134f, 450f, 1598f, 1))
-        handleParsedData(HpTqData(110f, 309f, 1832f, 1))
-        handleParsedData(HpTqData(90f, 254f, 2231f, 1))
-        handleParsedData(HpTqData(300f, 210f, 1300f, 2))
-        handleParsedData(HpTqData(310f, 220f, 1400f, 2))
-        handleParsedData(HpTqData(320f, 320f, 1500f, 2))
-        handleParsedData(HpTqData(320f, 350f, 1600f, 2))
-        handleParsedData(HpTqData(300f, 210f, 1300f, 3))
-        handleParsedData(HpTqData(310f, 220f, 1400f, 3))
-        handleParsedData(HpTqData(320f, 320f, 1500f, 3))
-        handleParsedData(HpTqData(320f, 350f, 1600f, 3))
-        handleParsedData(HpTqData(300f, 210f, 1300f, 4))
-        handleParsedData(HpTqData(310f, 220f, 1400f, 4))
-        handleParsedData(HpTqData(320f, 320f, 1500f, 4))
-        handleParsedData(HpTqData(320f, 350f, 1600f, 4))
     }
 
     fun clear() {
@@ -99,70 +69,49 @@ class HpTorqueViewModel : ViewModel() {
         forzaService.data.removeObserver(dataObserver)
     }
 
-    private fun handleParsedData(data: HpTqData) {
-        val roundedRpm = roundToNearestRpmRange(data.rpm)
+    private fun parseData(incoming: ForzaTelemetryApi?) {
+        // Check for invalid data
+        if (invalidData(incoming)) {
+            return;
+        }
+        // We checked against null in the above check
+        val data = incoming!!
+        val roundedRpm = roundToNearestRpmRange(data.currentEngineRpm)
         if (!dataMap.containsKey(data.gear)) {
             dataMap[data.gear] = HashMap()
         }
         val gearMap = dataMap[data.gear]
         if (!gearMap!!.containsKey(roundedRpm)) {
             gearMap[roundedRpm] = DataForRPM(
-                data.hp,
-                data.tq
+                data.horsePower,
+                data.torque
             )
         } else {
-            val avgTq = findAverage(dataMap[data.gear]!!.values.map { i -> i.tq })
-            val avgHp = findAverage(dataMap[data.gear]!!.values.map { i -> i.hp })
-            if(isOutlier(avgTq, data.tq) || isOutlier(avgHp, data.hp)) {
-                Log.w(_tag, "Skipping outlier ${data.hp} & ${data.tq}")
-                return
-            }
             val existingValues = gearMap[roundedRpm]
-            if (existingValues!!.hp > data.hp) {
-                gearMap[roundedRpm]!!.hp = data.hp
+            if (existingValues!!.hp < data.horsePower) {
+                gearMap[roundedRpm]!!.hp = data.horsePower
             }
-            if (existingValues.tq > data.tq) {
-                gearMap[roundedRpm]!!.tq = data.tq
+            if (existingValues.tq < data.torque) {
+                gearMap[roundedRpm]!!.tq = data.torque
             }
         }
         val eventData = DataUpdate(data.gear, roundedRpm)
         _dataUpdated.value = eventData
-//        _dataUpdated.postValue(eventData)
     }
 
-    private fun parseData(data: ForzaTelemetryApi?) {
-        if (data == null || data.gear < 1 || data.gear > 10) {
-            return
-        }
-        if (data.horsePower <= 0 || data.torque <= 0) {
-            return
-        }
-        if (data.throttle < 95) {
-            Log.w(_tag, "Skipping partial throttle")
-            return
-        }
-        if (data.clutch > 0) {
-            Log.w(_tag, "Skipping clutch")
-            return;
-        }
-        val dataPacket = HpTqData(
-            data.horsePower,
-            data.torque,
-            data.currentEngineRpm,
-            data.gear
-        )
-        handleParsedData(dataPacket)
-    }
-
-    private fun isOutlier(avg: Float, value: Float): Boolean {
-        val upperBound = avg + 20;
-        val lowerBound = avg - 20;
-        return value >= upperBound || value <= lowerBound
-    }
-    private fun findAverage(values: List<Float>): Float {
-        var runningTotal = 0f
-        values.forEach { value -> runningTotal += value }
-        return runningTotal / values.size
+    private fun invalidData(data: ForzaTelemetryApi?): Boolean {
+        // We skip null data, gears less than first, and
+        // Forza sends gear == 11 as a 'shift' event
+        return (data == null
+                || data.gear < 1
+                || data.gear > 10
+                // We skip data readings of negative values (usually decel)
+                || data.horsePower <= 0
+                || data.torque <= 0
+                // Skip partial throttle events - only looking for full hp
+                || data.throttle < 95
+                // Skip power readings during a clutch event
+                || data.clutch > 0)
     }
 
     private fun roundToNearestRpmRange(rpm: Float): Int {
