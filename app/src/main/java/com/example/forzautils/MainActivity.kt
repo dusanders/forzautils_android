@@ -2,28 +2,32 @@ package com.example.forzautils
 
 import android.os.Bundle
 import android.util.Log
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
+import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import com.example.forzautils.services.ForzaService
 import com.example.forzautils.services.WiFiService
+import com.example.forzautils.ui.AppContainer
+import com.example.forzautils.ui.ForzaNavigation
 import com.example.forzautils.ui.dataViewer.DataViewerFragment
 import com.example.forzautils.ui.dataViewer.DataViewerViewModel
 import com.example.forzautils.ui.networkError.NetworkErrorFragment
 import com.example.forzautils.ui.networkError.NetworkErrorViewModel
 import com.example.forzautils.ui.networkInfo.NetworkInfoFragment
-import com.example.forzautils.ui.networkInfo.NetworkInfoViewModel
+import com.example.forzautils.viewModels.NetworkInfoViewModel
 import com.example.forzautils.ui.splash.SplashFragment
 import com.example.forzautils.ui.splash.SplashViewModel
+import com.example.forzautils.ui.theme.ForzaUtilsTheme
 import com.example.forzautils.utils.Constants
 import com.example.forzautils.utils.OffloadThread
+import com.example.forzautils.viewModels.NetworkInfoViewModelFactory
 
-class MainActivity : AppCompatActivity(), NetworkErrorViewModel.Callback {
+class MainActivity : ComponentActivity(), NetworkErrorViewModel.Callback {
     enum class Pages {
         SPLASH,
         DATA_VIEWER,
@@ -33,7 +37,9 @@ class MainActivity : AppCompatActivity(), NetworkErrorViewModel.Callback {
 
     private val _tag: String = "MainActivity"
 
-    private val _networkInfoViewModel: NetworkInfoViewModel by viewModels()
+    private val _networkInfoViewModel: NetworkInfoViewModel by viewModels {
+        NetworkInfoViewModelFactory(wiFiService)
+    }
     private val _splashViewModel: SplashViewModel by viewModels()
     private val _networkErrorViewModel: NetworkErrorViewModel by viewModels()
     private val _dataViewerViewModel: DataViewerViewModel by viewModels()
@@ -53,18 +59,18 @@ class MainActivity : AppCompatActivity(), NetworkErrorViewModel.Callback {
     }
 
     private val wifiInetObserver: Observer<WiFiService.InetState> = Observer { inet ->
-        if (inet.ipString == Constants.DEFAULT_IP) {
+        if (inet.ipString == Constants.Inet.DEFAULT_IP) {
             currentFragment.postValue(Pages.NETWORK_ERROR)
         } else {
-            forzaService.start()
+            forzaService.start(wiFiService)
         }
     }
 
-    private val forzaConnectedObserver: Observer<Boolean> = Observer { connected ->
+    private val forzaConnectedObserver: Observer<Boolean> = Observer {
         Log.d(_tag, "Forza connected")
     }
 
-    private val homeReadyBtnObserver: Observer<Boolean> = Observer { clicked ->
+    private val homeReadyBtnObserver: Observer<Boolean> = Observer {
         Log.d(_tag, "Home ready clicked")
         currentFragment.postValue(Pages.DATA_VIEWER)
     }
@@ -79,12 +85,24 @@ class MainActivity : AppCompatActivity(), NetworkErrorViewModel.Callback {
         initializeServices()
         initializeViewModels()
         attachObservers()
-        setContentView(R.layout.activity_main)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
+        setContent {
+            ComposeView(this).apply {
+                ForzaUtilsTheme {
+                    AppContainer{
+//                        SplashPage()
+//                        LandingPage(_networkInfoViewModel)
+                        ForzaNavigation(networkInfoViewModel = _networkInfoViewModel)
+                    }
+                }
+            }
         }
+
+//        setContentView(R.layout.activity_main)
+//        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+//            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+//            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+//            insets
+//        }
     }
 
     override fun onResume() {
@@ -110,10 +128,10 @@ class MainActivity : AppCompatActivity(), NetworkErrorViewModel.Callback {
 
     private fun initializeServices() {
         wiFiService = WiFiService(
-            Constants.PORT,
+            Constants.Inet.PORT,
             baseContext
         )
-        forzaService = ForzaService(wiFiService.port)
+        forzaService = ForzaService(wiFiService.port, applicationContext)
     }
 
     private fun initializeViewModels() {
@@ -122,7 +140,6 @@ class MainActivity : AppCompatActivity(), NetworkErrorViewModel.Callback {
     }
 
     private fun removeObservers() {
-        _networkInfoViewModel.readyBtnClicked.removeObserver(homeReadyBtnObserver)
         wiFiService.inetState.removeObserver(wifiInetObserver)
         forzaService.forzaListening.removeObserver(forzaListeningObserver)
         forzaService.forzaConnected.removeObserver(forzaConnectedObserver)
@@ -130,7 +147,6 @@ class MainActivity : AppCompatActivity(), NetworkErrorViewModel.Callback {
     }
 
     private fun attachObservers() {
-        _networkInfoViewModel.readyBtnClicked.observe(this, homeReadyBtnObserver)
         wiFiService.inetState.observe(this, wifiInetObserver)
         forzaService.forzaListening.observe(this, forzaListeningObserver)
         forzaService.forzaConnected.observe(this, forzaConnectedObserver)
@@ -156,8 +172,8 @@ class MainActivity : AppCompatActivity(), NetworkErrorViewModel.Callback {
                 fragment = DataViewerFragment()
             }
         }
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.mainFragment_contentView, fragment)
-            .commit()
+//        supportFragmentManager.beginTransaction()
+//            .replace(R.id.mainFragment_contentView, fragment)
+//            .commit()
     }
 }

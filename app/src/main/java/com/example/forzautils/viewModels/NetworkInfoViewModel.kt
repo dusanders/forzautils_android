@@ -1,4 +1,4 @@
-package com.example.forzautils.ui.networkInfo
+package com.example.forzautils.viewModels
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -6,12 +6,13 @@ import androidx.lifecycle.ViewModel
 import com.example.forzautils.services.WiFiService
 import com.example.forzautils.utils.Constants
 
-class NetworkInfoViewModel : ViewModel() {
+class NetworkInfoViewModel(private val wifiService: WiFiService) : ViewModel() {
     private val _tag = "NetworkInfoViewModel"
 
     data class InetInfo(
         val ip: String,
-        val port: Int
+        val port: Int,
+        val ssid: String
     )
 
     private val _inetError: MutableLiveData<Boolean> = MutableLiveData()
@@ -20,19 +21,12 @@ class NetworkInfoViewModel : ViewModel() {
     private val _inetInfo: MutableLiveData<InetInfo> = MutableLiveData()
     val inetInfo: LiveData<InetInfo> get() = _inetInfo
 
-    private val _readyBtnClicked: MutableLiveData<Boolean> = MutableLiveData()
-    val readyBtnClicked: LiveData<Boolean> get() = _readyBtnClicked
-
-    fun onReadyClicked() {
-        _readyBtnClicked.postValue(true);
-    }
-
     fun setInetState(inet: WiFiService.InetState) {
-        if (inet.ipString == Constants.DEFAULT_IP) {
+        if (inet.ipString == Constants.Inet.DEFAULT_IP) {
             _inetError.postValue(true)
         } else {
             _inetError.postValue(false)
-            _inetInfo.postValue(InetInfo(inet.ipString, inet.port))
+            _inetInfo.postValue(InetInfo(inet.ipString, inet.port, inet.ssid))
         }
     }
 }

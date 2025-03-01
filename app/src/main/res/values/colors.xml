@@ -5,4 +5,5 @@
     <color name="hpTorque_text">#FFF</color>
     <color name="hpTorque_hpLine">#bbaaff</color>
     <color name="hpTorque_torqueLine">#ffaabb</color>
+    <color name="darkTheme_background">#2716B0</color>"
 </resources>

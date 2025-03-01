@@ -11,6 +11,7 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import com.example.forzautils.R
+import com.example.forzautils.viewModels.NetworkInfoViewModel
 
 class NetworkInfoFragment : Fragment() {
 
@@ -25,7 +26,7 @@ class NetworkInfoFragment : Fragment() {
         view = inflater.inflate(R.layout.fragment_network_info, container, false)
         view.findViewById<Button>(R.id.home_btn_ready)
             .setOnClickListener {
-                viewModel.onReadyClicked()
+                
             }
         view.findViewById<TextView>(R.id.telemetry_note).typeface =
             Typeface.create(null, 700, false)

@@ -17,4 +17,8 @@
     <string name="generic_horsepower">Horsepower</string>
     <string name="generic_torque">Torque</string>
     <string name="generic_clear">Clear</string>
+    <string name="generic_note">Note:</string>
+    <string name="landingPage_forwardDataHeading">Forward Telemetry Data</string>
+    <string name="landingPage_forwardDataDesc">Setup Forza\'s Telemetry output to go to the below IP and Port. PLEASE USE DASH FORMAT!</string>
+    <string name="landingPage_simHub_note">If using SimHub, please instruct SimHub to forward telemetry data to the below Ip and Port!</string>"
 </resources>

@@ -4,102 +4,161 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.ConnectivityManager.NetworkCallback
 import android.net.Network
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
+import android.net.wifi.WifiInfo
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.example.forzautils.utils.Constants
 import com.example.forzautils.utils.OffloadThread
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.net.Inet4Address
 import java.net.NetworkInterface
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
+/**
+ * Class to implement OS calls and callbacks with Android
+ */
 class WiFiService(
-    private val _port: Int,
-    private val _context: Context
+  private val _port: Int,
+  private val _context: Context
 ) : NetworkCallback() {
-    data class InetState (
-        var ipString: String = Constants.DEFAULT_IP,
-        var port: Int = Constants.PORT
+
+  /**
+   * State of the WiFi connection
+   */
+  data class InetState(
+    var ipString: String = Constants.Inet.DEFAULT_IP,
+    var port: Int = Constants.Inet.PORT,
+    var ssid: String = Constants.Inet.DEFAULT_SSID
+  )
+
+  private val _tag = "WiFiService"
+  private var connectivityManager: ConnectivityManager =
+    _context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+
+  private val _inetState: MutableLiveData<InetState> = MutableLiveData(InetState())
+  val inetState: LiveData<InetState> get() = _inetState
+
+  val port get() = _port;
+
+  init {
+    connectivityManager.registerDefaultNetworkCallback(this)
+  }
+
+  fun stop() {
+    connectivityManager.unregisterNetworkCallback(this)
+  }
+
+  override fun onUnavailable() {
+    super.onUnavailable()
+    setInetUnavailable()
+  }
+
+  override fun onLost(network: Network) {
+    super.onLost(network)
+    setInetUnavailable()
+  }
+
+  override fun onAvailable(network: Network) {
+    super.onAvailable(network)
+    checkNetwork()
+  }
+
+  fun checkNetwork() {
+    // Offload the network check to a background thread
+    OffloadThread.Instance().post({
+      val isAvailable = connectivityManager.activeNetwork
+      if (isAvailable != null) {
+        try {
+          runBlocking {
+            val ipString = (async { getIpAddress() }).await()
+            val ssid = (async { requestSSID() }).await()
+            _inetState.postValue(
+              InetState(
+                ipString = ipString,
+                ssid = ssid,
+                port = _port
+              )
+            )
+          }
+        } catch (error: InterruptedException) {
+          Log.w(_tag, "Interrupted while checking network...")
+        }
+      }
+    })
+  }
+
+  private fun setInetUnavailable() {
+    _inetState.postValue(InetState())
+  }
+
+  private suspend fun requestSSID(): String = suspendCoroutine { continueWithResult ->
+    val connectivityManager =
+      _context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    connectivityManager.registerNetworkCallback(
+      NetworkRequest.Builder()
+        .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+        .build(),
+      @RequiresApi(Build.VERSION_CODES.S)
+      object : NetworkCallback(FLAG_INCLUDE_LOCATION_INFO) {
+        override fun onAvailable(network: Network) {
+          // Nothings to do here
+        }
+
+        override fun onCapabilitiesChanged(
+          network: Network,
+          networkCapabilities: NetworkCapabilities
+        ) {
+          super.onCapabilitiesChanged(network, networkCapabilities)
+          Log.d(
+            _tag,
+            "Network capabilities changed - ${networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)}"
+          )
+          if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
+            val wifiInfo = networkCapabilities.transportInfo as WifiInfo
+            val ssidName = wifiInfo.ssid
+            Log.d(_tag, "SSID: $ssidName")
+            continueWithResult.resume(ssidName.substring(1, ssidName.length - 1))
+            connectivityManager.unregisterNetworkCallback(this)
+          }
+        }
+      }
     )
+  }
 
-    private val _tag = "WiFiService"
-    private var connectivityManager: ConnectivityManager = _context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-
-    private val _inetState: MutableLiveData<InetState> = MutableLiveData()
-    val inetState: LiveData<InetState> get() = _inetState
-
-    val port get() = _port;
-
-    init {
-        connectivityManager.registerDefaultNetworkCallback(this)
+  private suspend fun getIpAddress(): String {
+    var ipStr = ""
+    val interfaces = withContext(Dispatchers.IO) {
+      NetworkInterface.getNetworkInterfaces()
     }
-
-    fun stop() {
-        connectivityManager.unregisterNetworkCallback(this)
-    }
-
-    override fun onUnavailable() {
-        super.onUnavailable()
-        setInetUnavailable()
-    }
-
-    override fun onLost(network: Network) {
-        super.onLost(network)
-        setInetUnavailable()
-    }
-
-    override fun onAvailable(network: Network) {
-        super.onAvailable(network)
-        checkNetwork()
-    }
-
-    fun checkNetwork() {
-        OffloadThread.Instance().post({
-            val isAvailable = connectivityManager.activeNetwork
-            if(isAvailable != null) {
-                try {
-                    runBlocking {
-                        val inetState = (async { updateInet() }).await()
-                        _inetState.postValue(inetState)
-                    }
-                }catch (error: InterruptedException) {
-                    Log.w(_tag, "Interrupted while checking network...")
-                }
-            }
-        })
-    }
-
-    private fun setInetUnavailable() {
-        _inetState.postValue(InetState(Constants.DEFAULT_IP, _port))
-    }
-
-    private suspend fun updateInet(): InetState {
-        var ipStr = ""
-        val interfaces = withContext(Dispatchers.IO) {
-            NetworkInterface.getNetworkInterfaces()
+    while (interfaces.hasMoreElements()) {
+      val inetDevice = interfaces.nextElement()
+      if (inetDevice.isLoopback) {
+        continue
+      }
+      val addresses = inetDevice.inetAddresses
+      while (addresses.hasMoreElements()) {
+        val address = addresses.nextElement()
+        if (address.isLoopbackAddress) {
+          continue
         }
-        while (interfaces.hasMoreElements()) {
-            val inetDevice = interfaces.nextElement()
-            if (inetDevice.isLoopback) {
-                continue
-            }
-            val addresses = inetDevice.inetAddresses
-            while (addresses.hasMoreElements()) {
-                val address = addresses.nextElement()
-                if (address.isLoopbackAddress) {
-                    continue
-                }
-                if (address is Inet4Address) {
-                    ipStr = address.hostAddress
-                        ?: address.hostAddress
-                                ?: Constants.DEFAULT_IP
-                }
-            }
+        if (address is Inet4Address) {
+          ipStr = address.hostAddress
+            ?: address.hostAddress
+                ?: Constants.Inet.DEFAULT_IP
         }
-        Log.d(_tag, "Got IP: $ipStr")
-        return InetState(ipStr, _port)
+      }
     }
+    Log.d(_tag, "Got IP: $ipStr")
+    return ipStr
+  }
 }

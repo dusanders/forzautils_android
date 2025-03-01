@@ -61,6 +61,7 @@ class HpTorqueFragment : Fragment() {
             rebuildAllGraphs()
         }
         attachObservers()
+//        viewModel.DEBUG()
     }
 
     override fun onStop() {
