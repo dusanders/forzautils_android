@@ -67,7 +67,8 @@ fun PageHeading() {
     DescText(
       text = stringResource(R.string.landingPage_forwardDataDesc),
       textAlign = TextAlign.Start,
-      letterSpacing = 0.9.sp
+      letterSpacing = 0.9.sp,
+      lineHeight = 22.sp
     )
     Text(
       modifier = Modifier.padding(top = 2.dp),

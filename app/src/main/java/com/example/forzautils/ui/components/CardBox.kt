@@ -10,13 +10,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 @Composable
 fun CardBox(content: @Composable () -> Unit) {
   Column(
     modifier = Modifier
-      .border(0.3f.dp, MaterialTheme.colorScheme.onPrimary)
+      .border(Dp.Hairline, MaterialTheme.colorScheme.onPrimary)
       .padding(26.dp)
       .fillMaxWidth()
       .height(50.dp),

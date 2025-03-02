@@ -1,6 +1,8 @@
 package com.example.forzautils.services
 
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -39,9 +41,9 @@ class ForzaService(
   private val _data: MutableLiveData<TelemetryData?> = MutableLiveData()
   val data: LiveData<TelemetryData?> get() = _data
 
-  private val wifiInetObserver: Observer<WiFiService.InetState> = Observer { inet ->
-    Log.d(_tag, "Inet state changed to ${inet.ipString} ${inet.ssid}")
-    if (inet.ipString != Constants.Inet.DEFAULT_IP) {
+  private val wifiInetObserver: Observer<WiFiService.InetState?> = Observer { inet ->
+    Log.d(_tag, "Inet state changed to ${inet?.ipString} ${inet?.ssid}")
+    if (inet?.ipString != Constants.Inet.DEFAULT_IP) {
       startForzaUdpListen()
     } else {
       stop()
@@ -49,8 +51,10 @@ class ForzaService(
   }
 
   init {
-    this.port = wifiService.port
-    wifiService.inetState.observeForever(wifiInetObserver)
+    Handler(Looper.getMainLooper()).post {
+      this.port = wifiService.port
+      wifiService.inetState.observeForever(wifiInetObserver)
+    }
   }
 
   /**

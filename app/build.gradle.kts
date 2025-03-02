@@ -58,6 +58,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.fragment.ktx)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.material3.icons)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.adaptive)
     implementation(libs.androidx.activity.compose)

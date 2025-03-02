@@ -37,7 +37,7 @@ fun LabelText(text: String) {
 }
 @Composable
 fun WifiInfoTable(networkInfoViewModel: NetworkInfoViewModel) {
-  val inetInfo by networkInfoViewModel.inetInfo.collectAsState()
+  val inetInfo by networkInfoViewModel.inetViewInfo.collectAsState()
   Row(
     modifier = Modifier
       .padding(top = 36.dp)

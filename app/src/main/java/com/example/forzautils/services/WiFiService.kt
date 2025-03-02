@@ -13,10 +13,11 @@ import androidx.annotation.RequiresApi
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.example.forzautils.utils.Constants
-import com.example.forzautils.utils.OffloadThread
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.net.Inet4Address
@@ -39,19 +40,27 @@ class WiFiService(
     var ipString: String = Constants.Inet.DEFAULT_IP,
     var port: Int = Constants.Inet.PORT,
     var ssid: String = Constants.Inet.DEFAULT_SSID
-  )
+  ) {
+    override fun toString(): String {
+      return "InetState(ipString='$ipString', port=$port, ssid='$ssid')"
+    }
+  }
 
   private val _tag = "WiFiService"
   private var connectivityManager: ConnectivityManager =
     _context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
-  private val _inetState: MutableLiveData<InetState> = MutableLiveData(InetState())
-  val inetState: LiveData<InetState> get() = _inetState
+  private val _inetState: MutableLiveData<InetState?> = MutableLiveData(null)
+  val inetState: LiveData<InetState?> get() = _inetState
 
   val port get() = _port;
 
-  fun start() {
+  init {
     connectivityManager.registerDefaultNetworkCallback(this)
+  }
+
+  suspend fun waitForInet() {
+
   }
 
   fun stop() {
@@ -60,32 +69,32 @@ class WiFiService(
     } catch (_: IllegalArgumentException) {
       // Safe to ignore - we may call this during android lifecycle events
     }
-    _inetState.postValue(InetState())
+    _inetState.postValue(null)
   }
 
   override fun onUnavailable() {
     super.onUnavailable()
+    Log.d(_tag, "Inet unavailable")
     setInetUnavailable()
   }
 
   override fun onLost(network: Network) {
     super.onLost(network)
+    Log.d(_tag, "Inet lost")
     setInetUnavailable()
-  }
-
-  override fun onAvailable(network: Network) {
-    super.onAvailable(network)
-    checkNetwork(network)
   }
 
   override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) {
     super.onCapabilitiesChanged(network, networkCapabilities)
+    Log.d(_tag, "Capabilities changed")
     checkNetwork(network)
   }
 
   fun checkNetwork(network: Network) {
+    Log.d(_tag, "Checking network...")
     // Offload the network check to a background thread
-    OffloadThread.Instance().post({
+    CoroutineScope(Dispatchers.IO).launch {
+      Log.d(_tag, "Checking network... inside offload thread")
       val networkCapabilities = connectivityManager
         .getNetworkCapabilities(network)
       if (networkCapabilities != null
@@ -93,23 +102,21 @@ class WiFiService(
           NetworkCapabilities.TRANSPORT_WIFI
         )
       ) {
+        Log.d(_tag, "Checking network...")
         val isAvailable = connectivityManager.activeNetwork
         if (isAvailable != null) {
           try {
-            runBlocking {
-              val ipString = (async { getIpAddress() }).await()
-              Log.d(_tag, "Got IP: $ipString")
-              val ssid = (async { requestSSID() }).await()
-              Log.d(_tag, "Got SSID: $ssid")
-              if (_inetState.value?.ipString != ipString || _inetState.value?.ssid != ssid) {
-                _inetState.postValue(
-                  InetState(
-                    ipString = ipString,
-                    ssid = ssid,
-                    port = _port
-                  )
+            val ipString = (async { getIpAddress() }).await()
+            val ssid = (async { requestSSID() }).await()
+            if (_inetState.value?.ipString != ipString || _inetState.value?.ssid != ssid) {
+              Log.d(_tag, "Update state: $ipString $ssid")
+              _inetState.postValue(
+                InetState(
+                  ipString = ipString,
+                  ssid = ssid,
+                  port = _port
                 )
-              }
+              )
             }
           } catch (error: InterruptedException) {
             Log.w(_tag, "Interrupted while checking network...")
@@ -118,10 +125,12 @@ class WiFiService(
       } else {
         setInetUnavailable()
       }
-    })
+    }
   }
 
   private fun setInetUnavailable() {
+    val defaultState = InetState()
+    Log.d(_tag, "Update state: ${defaultState.ipString} - ${defaultState.ssid}")
     _inetState.postValue(InetState())
   }
 

@@ -10,3 +10,7 @@ object FontSizes {
   val xl = 18.sp
   val header = 32.sp
 }
+
+object LetterSpacings {
+  val textButton = 1.3.sp
+}
