@@ -8,6 +8,9 @@ class OffloadThread private constructor() {
     companion object {
         private var _instance: OffloadThread = OffloadThread()
         fun Instance(): OffloadThread {
+            if(_instance._handlerThread.isInterrupted) {
+                _instance = OffloadThread()
+            }
             return _instance;
         }
     }

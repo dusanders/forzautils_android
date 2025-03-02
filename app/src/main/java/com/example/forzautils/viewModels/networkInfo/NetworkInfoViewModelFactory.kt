@@ -1,4 +1,4 @@
-package com.example.forzautils.viewModels
+package com.example.forzautils.viewModels.networkInfo
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider

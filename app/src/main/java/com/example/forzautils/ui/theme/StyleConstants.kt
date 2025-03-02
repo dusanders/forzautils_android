@@ -8,4 +8,5 @@ object FontSizes {
   val md = 14.sp
   val lg = 16.sp
   val xl = 18.sp
+  val header = 32.sp
 }

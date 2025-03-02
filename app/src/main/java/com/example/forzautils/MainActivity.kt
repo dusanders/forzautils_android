@@ -1,7 +1,6 @@
 package com.example.forzautils
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -10,67 +9,74 @@ import androidx.compose.ui.platform.ComposeView
 import com.example.forzautils.services.ForzaService
 import com.example.forzautils.services.WiFiService
 import com.example.forzautils.ui.AppContainer
-import com.example.forzautils.ui.ForzaNavigation
+import com.example.forzautils.ui.ForzaApp
 import com.example.forzautils.ui.dataViewer.DataViewerViewModel
 import com.example.forzautils.ui.theme.ForzaUtilsTheme
 import com.example.forzautils.utils.Constants
 import com.example.forzautils.utils.OffloadThread
-import com.example.forzautils.viewModels.NetworkInfoViewModel
-import com.example.forzautils.viewModels.NetworkInfoViewModelFactory
 
 class MainActivity : ComponentActivity() {
 
-    private val _tag: String = "MainActivity"
+  private val _tag: String = "MainActivity"
 
-    private val _networkInfoViewModel: NetworkInfoViewModel by viewModels {
-        NetworkInfoViewModelFactory(wiFiService)
-    }
-    private val _dataViewerViewModel: DataViewerViewModel by viewModels()
+  private val _dataViewerViewModel: DataViewerViewModel by viewModels()
 
-    private lateinit var wiFiService: WiFiService
-    private lateinit var forzaService: ForzaService
+  private var wiFiService: WiFiService? = null
+  private var forzaService: ForzaService? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        initializeServices()
-        initializeViewModels()
-        setContent {
-            ComposeView(this).apply {
-                ForzaUtilsTheme {
-                    AppContainer{
-//                        SplashPage()
-//                        LandingPage(_networkInfoViewModel)
-                        ForzaNavigation(networkInfoViewModel = _networkInfoViewModel)
-                    }
-                }
-            }
+  override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    enableEdgeToEdge()
+    initializeServices()
+    initializeViewModels()
+    setContent {
+      ComposeView(this).apply {
+        ForzaUtilsTheme {
+          AppContainer {
+            ForzaApp(wiFiService!!, forzaService!!)
+          }
         }
+      }
     }
+  }
 
-    override fun onResume() {
-        super.onResume()
-        OffloadThread.Instance().post {
-            wiFiService.checkNetwork()
-        }
-    }
+  override fun onResume() {
+    super.onResume()
+    initializeServices()
+  }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        wiFiService.stop()
-        forzaService.stop()
-        OffloadThread.Instance().interrupt()
-    }
+  override fun onDestroy() {
+    super.onDestroy()
+    wiFiService?.stop()
+    forzaService?.stop()
+    OffloadThread.Instance().interrupt()
+    wiFiService = null;
+    forzaService = null;
+  }
 
-    private fun initializeServices() {
+  private fun initializeServices() {
+    fun initWifiService() {
+      if (wiFiService == null) {
         wiFiService = WiFiService(
-            Constants.Inet.PORT,
-            baseContext
+          Constants.Inet.PORT,
+          baseContext
         )
-        forzaService = ForzaService(wiFiService.port, applicationContext)
+        wiFiService?.start()
+      }
     }
+    fun initForzaService() {
+      if (forzaService == null) {
+        forzaService = ForzaService(
+          wiFiService!!,
+          applicationContext
+        )
+      }
+    }
+    initWifiService()
+    initForzaService()
+  }
 
-    private fun initializeViewModels() {
-        _dataViewerViewModel.forzaService = forzaService
-    }
+  private fun initializeViewModels() {
+    _dataViewerViewModel.forzaService = forzaService!!
+  }
 }

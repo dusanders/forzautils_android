@@ -50,12 +50,17 @@ class WiFiService(
 
   val port get() = _port;
 
-  init {
+  fun start() {
     connectivityManager.registerDefaultNetworkCallback(this)
   }
 
   fun stop() {
-    connectivityManager.unregisterNetworkCallback(this)
+    try {
+      connectivityManager.unregisterNetworkCallback(this)
+    } catch (_: IllegalArgumentException) {
+      // Safe to ignore - we may call this during android lifecycle events
+    }
+    _inetState.postValue(InetState())
   }
 
   override fun onUnavailable() {
@@ -70,29 +75,48 @@ class WiFiService(
 
   override fun onAvailable(network: Network) {
     super.onAvailable(network)
-    checkNetwork()
+    checkNetwork(network)
   }
 
-  fun checkNetwork() {
+  override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) {
+    super.onCapabilitiesChanged(network, networkCapabilities)
+    checkNetwork(network)
+  }
+
+  fun checkNetwork(network: Network) {
     // Offload the network check to a background thread
     OffloadThread.Instance().post({
-      val isAvailable = connectivityManager.activeNetwork
-      if (isAvailable != null) {
-        try {
-          runBlocking {
-            val ipString = (async { getIpAddress() }).await()
-            val ssid = (async { requestSSID() }).await()
-            _inetState.postValue(
-              InetState(
-                ipString = ipString,
-                ssid = ssid,
-                port = _port
-              )
-            )
+      val networkCapabilities = connectivityManager
+        .getNetworkCapabilities(network)
+      if (networkCapabilities != null
+        && networkCapabilities.hasTransport(
+          NetworkCapabilities.TRANSPORT_WIFI
+        )
+      ) {
+        val isAvailable = connectivityManager.activeNetwork
+        if (isAvailable != null) {
+          try {
+            runBlocking {
+              val ipString = (async { getIpAddress() }).await()
+              Log.d(_tag, "Got IP: $ipString")
+              val ssid = (async { requestSSID() }).await()
+              Log.d(_tag, "Got SSID: $ssid")
+              if (_inetState.value?.ipString != ipString || _inetState.value?.ssid != ssid) {
+                _inetState.postValue(
+                  InetState(
+                    ipString = ipString,
+                    ssid = ssid,
+                    port = _port
+                  )
+                )
+              }
+            }
+          } catch (error: InterruptedException) {
+            Log.w(_tag, "Interrupted while checking network...")
           }
-        } catch (error: InterruptedException) {
-          Log.w(_tag, "Interrupted while checking network...")
         }
+      } else {
+        setInetUnavailable()
       }
     })
   }
@@ -101,33 +125,25 @@ class WiFiService(
     _inetState.postValue(InetState())
   }
 
-  private suspend fun requestSSID(): String = suspendCoroutine { continueWithResult ->
-    val connectivityManager =
-      _context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+  private suspend fun requestSSID(): String = suspendCoroutine { continuation ->
     connectivityManager.registerNetworkCallback(
       NetworkRequest.Builder()
         .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
         .build(),
       @RequiresApi(Build.VERSION_CODES.S)
       object : NetworkCallback(FLAG_INCLUDE_LOCATION_INFO) {
-        override fun onAvailable(network: Network) {
-          // Nothings to do here
-        }
-
         override fun onCapabilitiesChanged(
           network: Network,
           networkCapabilities: NetworkCapabilities
         ) {
           super.onCapabilitiesChanged(network, networkCapabilities)
-          Log.d(
-            _tag,
-            "Network capabilities changed - ${networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)}"
-          )
           if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
             val wifiInfo = networkCapabilities.transportInfo as WifiInfo
             val ssidName = wifiInfo.ssid
-            Log.d(_tag, "SSID: $ssidName")
-            continueWithResult.resume(ssidName.substring(1, ssidName.length - 1))
+            continuation.resume(ssidName.substring(1, ssidName.length - 1))
+            connectivityManager.unregisterNetworkCallback(this)
+          } else {
+            continuation.resume(Constants.Inet.DEFAULT_SSID)
             connectivityManager.unregisterNetworkCallback(this)
           }
         }
@@ -158,7 +174,6 @@ class WiFiService(
         }
       }
     }
-    Log.d(_tag, "Got IP: $ipStr")
     return ipStr
   }
 }

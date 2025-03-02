@@ -23,7 +23,6 @@ import com.example.forzautils.ui.theme.FontSizes
 
 @Composable
 fun DescText(
-  modifier: Modifier = Modifier,
   text: String,
   fontWeight: FontWeight = FontWeight.Normal,
   color: Color = MaterialTheme.colorScheme.primary,
@@ -35,7 +34,7 @@ fun DescText(
 ) {
   Text(
     text = text,
-    modifier = modifier
+    modifier = Modifier
       .padding(top = 2.dp),
     color = color,
     fontSize = fontSize,
@@ -77,12 +76,15 @@ fun PageHeading() {
       fontWeight = FontWeight.Bold,
       fontSize = FontSizes.md
     )
-    DescText(
+    Text(
       text = stringResource(R.string.landingPage_simHub_note),
       color = MaterialTheme.colorScheme.onPrimary,
       fontStyle = FontStyle.Italic,
       fontSize = FontSizes.sm,
-      lineHeight = 18.sp
+      lineHeight = 18.sp,
+      textAlign = TextAlign.Center,
+      modifier = Modifier
+        .padding(top = 0.dp)
     )
   }
 }
