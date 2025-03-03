@@ -3,7 +3,6 @@ package com.example.forzautils.services
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.ConnectivityManager.NetworkCallback
-import android.net.LinkProperties
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
@@ -16,16 +15,8 @@ import androidx.lifecycle.MutableLiveData
 import com.example.forzautils.utils.Constants
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import java.net.Inet4Address
-import java.net.NetworkInterface
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 /**
  * Class to implement OS calls and callbacks with Android
@@ -128,7 +119,7 @@ class WiFiService(
     var ssid = Constants.Inet.DEFAULT_SSID
     val wifiInfo = networkCapabilities.transportInfo as WifiInfo
     val ssidName = wifiInfo.ssid
-    if (ssidName.isNotEmpty()) {
+    if (ssidName.isNotEmpty() && ssidName != Constants.Inet.ANDROID_UNKNOWN_SSID) {
       ssid = ssidName.substring(1, ssidName.length - 1)
     }
     return ssid

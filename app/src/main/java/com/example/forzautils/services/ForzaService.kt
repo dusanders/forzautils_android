@@ -1,9 +1,11 @@
 package com.example.forzautils.services
 
 import android.content.Context
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
@@ -21,6 +23,7 @@ interface ForzaServiceCallbacks {
 /**
  * Class to implement logic and callbacks for the Forza Telemetry module
  */
+@RequiresApi(Build.VERSION_CODES.S)
 class ForzaService(
   private val wifiService: WiFiService,
   val context: Context,

@@ -43,6 +43,18 @@ class MainActivity : ComponentActivity() {
     val isDarkMode = uiModeManager.nightMode == UiModeManager.MODE_NIGHT_YES
     themeViewModel.setTheme(isDarkMode)
     enableEdgeToEdge()
+    start()
+  }
+
+  @RequiresApi(Build.VERSION_CODES.S)
+  override fun onDestroy() {
+    super.onDestroy()
+    wiFiService.stop()
+    forzaService.stop()
+  }
+
+  @RequiresApi(Build.VERSION_CODES.S)
+  private fun start() {
     wiFiService = WiFiService(
       Constants.Inet.PORT,
       baseContext
@@ -80,16 +92,15 @@ class MainActivity : ComponentActivity() {
   }
 
   @RequiresApi(Build.VERSION_CODES.S)
-  override fun onDestroy() {
-    super.onDestroy()
+  private fun restart() {
     wiFiService.stop()
-    forzaService.stop()
   }
 
   private val forzaServiceCallback = object : ForzaServiceCallbacks {
+    @RequiresApi(Build.VERSION_CODES.S)
     override fun onSocketException(e: SocketException) {
       Log.w(_tag, "SocketException: ${e.message}")
-
+      restart()
     }
   }
 }

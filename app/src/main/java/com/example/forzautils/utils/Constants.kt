@@ -6,6 +6,7 @@ class Constants {
             val PORT = 5400
             val DEFAULT_IP = "0.0.0.0"
             val DEFAULT_SSID = "-"
+            val ANDROID_UNKNOWN_SSID = "unknown ssid"
         }
     }
     class Pages {
