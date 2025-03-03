@@ -5,5 +5,24 @@
     <color name="hpTorque_text">#FFF</color>
     <color name="hpTorque_hpLine">#bbaaff</color>
     <color name="hpTorque_torqueLine">#ffaabb</color>
-    <color name="darkTheme_background">#2716B0</color>"
+    <color name="darkTheme_primary">#ffb6c6d6</color>
+    <color name="darkTheme_secondary">#ff79a5d1</color>
+    <color name="darkTheme_tertiary">#ffbe8df2</color>
+    <color name="darkTheme_background">#ff22282c</color>
+    <color name="darkTheme_surface">#ff393d41</color>
+    <color name="darkTheme_onPrimary">#66b6c6d6</color>
+    <color name="darkTheme_onSecondary">#625b71</color>
+    <color name="darkTheme_onTertiary">#7D5260</color>
+    <color name="darkTheme_onBackground">#FFFFFF</color>
+    <color name="darkTheme_onSurface">#FFFFFF</color>
+    <color name="lightTheme_primary">#6650a4</color>
+    <color name="lightTheme_secondary">#625b71</color>
+    <color name="lightTheme_tertiary">#7D5260</color>
+    <color name="lightTheme_background">#E7E7E7</color>
+    <color name="lightTheme_surface">#C7B9B9</color>
+    <color name="lightTheme_onPrimary">#6650a4</color>
+    <color name="lightTheme_onSecondary">#625b71</color>
+    <color name="lightTheme_onTertiary">#7D5260</color>
+    <color name="lightTheme_onBackground">#6F628A</color>
+    <color name="lightTheme_onSurface">#5B507C</color>
 </resources>

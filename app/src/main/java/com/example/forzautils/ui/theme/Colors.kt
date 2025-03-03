@@ -1,7 +1,12 @@
 package com.example.forzautils.ui.theme
 
+import android.content.Context
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.Typography
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
+import androidx.core.content.ContextCompat
+import com.example.forzautils.R
 
 // Define your colors here
 val Purple80 = Color(0xFFD0BCFF)
@@ -13,29 +18,33 @@ val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)
 
 // Define your DarkColorScheme
-val DarkColorScheme = androidx.compose.material3.darkColorScheme(
-    primary = Color(0xffb6c6d6),
-    secondary = Color(0xff79a5d1),
-    tertiary = Color(0xffbe8df2),
-    background = Color(0xff22282c), // Dark background
-    surface = Color(0xff393d41), // Dark surface
-    onPrimary = Color(0x66b6c6d6),
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color.White,
-    onSurface = Color.White,
-)
+fun DarkColorScheme(context: Context): ColorScheme {
+  return androidx.compose.material3.darkColorScheme(
+    primary = Color(context.getColor(R.color.darkTheme_primary)),
+    secondary = Color(context.getColor(R.color.darkTheme_secondary)),
+    tertiary = Color(context.getColor(R.color.darkTheme_tertiary)),
+    background = Color(context.getColor(R.color.darkTheme_background)), // Dark background
+    surface = Color(context.getColor(R.color.darkTheme_surface)), // Dark surface
+    onPrimary = Color(context.getColor(R.color.darkTheme_onPrimary)),
+    onSecondary = Color(context.getColor(R.color.darkTheme_onSecondary)),
+    onTertiary = Color(context.getColor(R.color.darkTheme_onTertiary)),
+    onBackground = Color(context.getColor(R.color.darkTheme_onBackground)),
+    onSurface = Color(context.getColor(R.color.darkTheme_onSurface)),
+  )
+}
 
 // Define your LightColorScheme
-val LightColorScheme = androidx.compose.material3.lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40,
-    background = Color(0xFFFFFBFE), // Light background
-    surface = Color(0xFFFFFBFE), // Light surface
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-)
+fun LightColorScheme(context: Context): ColorScheme {
+  return androidx.compose.material3.lightColorScheme(
+    primary = Color(context.getColor(R.color.lightTheme_primary)),
+    secondary = Color(context.getColor(R.color.lightTheme_secondary)),
+    tertiary = Color(context.getColor(R.color.lightTheme_tertiary)),
+    background = Color(context.getColor(R.color.lightTheme_background)), // Light background
+    surface = Color(context.getColor(R.color.lightTheme_surface)), // Light surface
+    onPrimary = Color(context.getColor(R.color.lightTheme_onPrimary)),
+    onSecondary = Color(context.getColor(R.color.lightTheme_onSecondary)),
+    onTertiary = Color(context.getColor(R.color.lightTheme_onTertiary)),
+    onBackground = Color(context.getColor(R.color.lightTheme_onBackground)),
+    onSurface = Color(context.getColor(R.color.lightTheme_onSurface)),
+  )
+}

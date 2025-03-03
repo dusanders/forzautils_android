@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import com.example.forzautils.viewModels.themeViewModel.ThemeViewModel
@@ -19,7 +20,11 @@ fun ForzaUtilsTheme(
   content: @Composable () -> Unit
 ) {
   val isDarkTheme = viewModel.isDarkTheme.collectAsState()
-  val currentTheme = if (isDarkTheme.value) DarkColorScheme else LightColorScheme
+  val currentTheme =
+    if (isDarkTheme.value)
+      DarkColorScheme(LocalContext.current)
+    else
+      LightColorScheme(LocalContext.current)
 
   val view = LocalView.current
   val window = (LocalView.current.context as Activity).window
