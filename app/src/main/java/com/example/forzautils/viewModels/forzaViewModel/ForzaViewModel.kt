@@ -12,13 +12,13 @@ import kotlinx.coroutines.launch
 class ForzaViewModel(private val forzaService: ForzaService): ViewModel() {
 
   private val _tag = "ForzaViewModel"
-  private val _listening: MutableStateFlow<Boolean> = MutableStateFlow(false)
-  val listening: StateFlow<Boolean> get() = _listening
+  private val _listening: MutableStateFlow<Int?> = MutableStateFlow(null)
+  val listening: StateFlow<Int?> get() = _listening
 
   private val _data: MutableStateFlow<TelemetryData?> = MutableStateFlow(null)
   val data: StateFlow<TelemetryData?> get() = _data
 
-  private val forzaListening: Observer<Boolean> = Observer {
+  private val forzaListening: Observer<Int?> = Observer {
     viewModelScope.launch {
       _listening.emit(it)
     }

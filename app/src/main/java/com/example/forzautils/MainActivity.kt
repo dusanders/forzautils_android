@@ -16,6 +16,7 @@ import com.example.forzautils.services.ForzaServiceCallbacks
 import com.example.forzautils.services.WiFiService
 import com.example.forzautils.ui.ForzaApp
 import com.example.forzautils.ui.dataViewer.DataViewerViewModel
+import com.example.forzautils.ui.pages.networkError.NetworkError
 import com.example.forzautils.ui.pages.splash.SplashPage
 import com.example.forzautils.ui.theme.ForzaUtilsTheme
 import com.example.forzautils.utils.Constants
@@ -36,7 +37,6 @@ class MainActivity : ComponentActivity() {
   private lateinit var wiFiService: WiFiService
   private lateinit var forzaService: ForzaService
 
-  @RequiresApi(Build.VERSION_CODES.S)
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     val uiModeManager = getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
@@ -46,17 +46,14 @@ class MainActivity : ComponentActivity() {
     start()
   }
 
-  @RequiresApi(Build.VERSION_CODES.S)
   override fun onDestroy() {
     super.onDestroy()
     wiFiService.stop()
     forzaService.stop()
   }
 
-  @RequiresApi(Build.VERSION_CODES.S)
   private fun start() {
     wiFiService = WiFiService(
-      Constants.Inet.PORT,
       baseContext
     )
 
@@ -94,13 +91,21 @@ class MainActivity : ComponentActivity() {
   @RequiresApi(Build.VERSION_CODES.S)
   private fun restart() {
     wiFiService.stop()
+    forzaService.stop()
+    start()
   }
 
   private val forzaServiceCallback = object : ForzaServiceCallbacks {
     @RequiresApi(Build.VERSION_CODES.S)
     override fun onSocketException(e: SocketException) {
       Log.w(_tag, "SocketException: ${e.message}")
-      restart()
+      runOnUiThread {
+        setContent {
+          ForzaUtilsTheme(themeViewModel) {
+            NetworkError()
+          }
+        }
+      }
     }
   }
 }

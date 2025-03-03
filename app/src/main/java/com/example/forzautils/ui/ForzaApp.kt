@@ -46,7 +46,7 @@ fun ForzaApp(
   }
 
   val networkInfoViewModel = viewModel<NetworkInfoViewModel>(
-    factory = NetworkInfoViewModelFactory(wifiService)
+    factory = NetworkInfoViewModelFactory(wifiService, forzaService)
   )
   val forzaViewModel = viewModel<ForzaViewModel>(
     factory = ForzaViewModelFactory(forzaService)

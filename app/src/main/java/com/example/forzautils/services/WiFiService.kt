@@ -21,9 +21,7 @@ import java.net.Inet4Address
 /**
  * Class to implement OS calls and callbacks with Android
  */
-@RequiresApi(Build.VERSION_CODES.S)
 class WiFiService(
-  private val _port: Int,
   context: Context
 ) : NetworkCallback(FLAG_INCLUDE_LOCATION_INFO) {
 
@@ -32,11 +30,10 @@ class WiFiService(
    */
   data class InetState(
     var ipString: String = Constants.Inet.DEFAULT_IP,
-    var port: Int = Constants.Inet.PORT,
     var ssid: String = Constants.Inet.DEFAULT_SSID
   ) {
     override fun toString(): String {
-      return "InetState(ipString='$ipString', port=$port, ssid='$ssid')"
+      return "InetState(ipString='$ipString', ssid='$ssid')"
     }
   }
 
@@ -47,12 +44,11 @@ class WiFiService(
   private val _inetState: MutableLiveData<InetState?> = MutableLiveData(null)
   val inetState: LiveData<InetState?> get() = _inetState
 
-  val port get() = _port;
-
   init {
     connectivityManager.registerNetworkCallback(
       NetworkRequest.Builder()
         .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+        .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
         .build(),
       this
     )
@@ -104,8 +100,7 @@ class WiFiService(
       _inetState.postValue(
         InetState(
           ipString = ipString,
-          ssid = ssid,
-          port = _port
+          ssid = ssid
         )
       )
     }
