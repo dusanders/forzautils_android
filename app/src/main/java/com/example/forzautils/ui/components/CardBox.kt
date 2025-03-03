@@ -14,15 +14,18 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun CardBox(content: @Composable () -> Unit) {
+fun CardBox(
+  height: Dp = 50.dp,
+  content: @Composable () -> Unit
+) {
   Column(
     modifier = Modifier
       .border(Dp.Hairline, MaterialTheme.colorScheme.onPrimary)
       .padding(26.dp)
       .fillMaxWidth()
-      .height(50.dp),
+      .height(height),
     horizontalAlignment = Alignment.CenterHorizontally,
-    verticalArrangement = Arrangement.SpaceEvenly
+    verticalArrangement = Arrangement.SpaceAround
   ) {
     content()
   }

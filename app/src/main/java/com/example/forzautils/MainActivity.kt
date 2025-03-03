@@ -10,26 +10,20 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.ui.platform.ComposeView
-import androidx.lifecycle.Observer
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.forzautils.services.ForzaService
 import com.example.forzautils.services.WiFiService
-import com.example.forzautils.ui.AppContainer
 import com.example.forzautils.ui.ForzaApp
 import com.example.forzautils.ui.dataViewer.DataViewerViewModel
 import com.example.forzautils.ui.pages.splash.SplashPage
 import com.example.forzautils.ui.theme.ForzaUtilsTheme
 import com.example.forzautils.utils.Constants
-import com.example.forzautils.utils.observeOnce
 import com.example.forzautils.utils.observeUntil
 import com.example.forzautils.viewModels.themeViewModel.ThemeViewModel
 import com.example.forzautils.viewModels.themeViewModel.ThemeViewModelFactory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -83,13 +77,11 @@ class MainActivity : ComponentActivity() {
         setContent {
           ComposeView(baseContext).apply {
             ForzaUtilsTheme(themeViewModel) {
-              AppContainer {
-                ForzaApp(
-                  themeViewModel,
-                  wiFiService!!,
-                  forzaService
-                )
-              }
+              ForzaApp(
+                themeViewModel,
+                wiFiService!!,
+                forzaService
+              )
             }
           }
         }

@@ -15,6 +15,7 @@ import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.toUpperCase
 import androidx.compose.ui.unit.dp
 import com.example.forzautils.ui.components.CardBox
+import com.example.forzautils.ui.components.TextCardBox
 import com.example.forzautils.viewModels.networkInfo.NetworkInfoViewModel
 import com.example.forzautils.ui.theme.FontSizes
 
@@ -48,27 +49,27 @@ fun WifiInfoTable(networkInfoViewModel: NetworkInfoViewModel) {
       modifier = Modifier
         .weight(1f)
     ) {
-      CardBox {
-        ValueText(text = inetInfo.ip)
-        LabelText(text = "IP Address")
-      }
-      CardBox {
-        ValueText(text = inetInfo.port.toString())
-        LabelText(text = "Port")
-      }
+      TextCardBox(
+        value = inetInfo.ip,
+        label = "Ip Address"
+      )
+      TextCardBox(
+        value = inetInfo.port.toString(),
+        label = "Port"
+      )
     }
     Column(
       modifier = Modifier
         .weight(1f)
     ) {
-      CardBox {
-        ValueText(text = inetInfo.ssid)
-        LabelText(text = "WiFi Name")
-      }
-      CardBox {
-        ValueText(text = "DASH")
-        LabelText(text = "Telemetry Format")
-      }
+      TextCardBox(
+        value = inetInfo.ssid,
+        label = "WiFi Name"
+      )
+      TextCardBox(
+        value = "DASH",
+        label = "Telemetry Format"
+      )
     }
   }
 }
