@@ -13,13 +13,18 @@ import forza.telemetry.data.ForzaTelemetryBuilder
 import forza.telemetry.data.TelemetryData
 import forza.telemetry.data.database.DatabaseService
 import java.net.DatagramPacket
+import java.net.SocketException
 
+interface ForzaServiceCallbacks {
+  fun onSocketException(e: SocketException)
+}
 /**
  * Class to implement logic and callbacks for the Forza Telemetry module
  */
 class ForzaService(
   private val wifiService: WiFiService,
-  val context: Context
+  val context: Context,
+  private val callbacks: ForzaServiceCallbacks? = null
 ) : ForzaInterface {
   // Debug tag
   private val _tag = "ForzaService"
@@ -41,9 +46,13 @@ class ForzaService(
   private val _data: MutableLiveData<TelemetryData?> = MutableLiveData()
   val data: LiveData<TelemetryData?> get() = _data
 
+  /**
+   * Observer for the WiFi service.
+   * We can only start the UDP listener if we are on WiFi
+   */
   private val wifiInetObserver: Observer<WiFiService.InetState?> = Observer { inet ->
     Log.d(_tag, "Inet state changed to ${inet?.ipString} ${inet?.ssid}")
-    if (inet?.ipString != Constants.Inet.DEFAULT_IP) {
+    if (inet != null && inet.ipString != Constants.Inet.DEFAULT_IP) {
       startForzaUdpListen()
     } else {
       stop()
@@ -85,6 +94,12 @@ class ForzaService(
 
   override fun onGameUnpaused() {
     // Not used
+  }
+
+  override fun onSocketException(e: SocketException) {
+    Log.w(_tag, "SocketException: ${e.message}")
+    stop()
+    callbacks?.onSocketException(e)
   }
 
   private fun startForzaUdpListen() {
