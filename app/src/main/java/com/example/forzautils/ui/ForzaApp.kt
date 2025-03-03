@@ -92,8 +92,8 @@ fun ForzaApp(
           override fun shouldShowBackButton(): Boolean {
             Log.d(tag, "current route: ${currentRoute}")
             return currentRoute != null
-                && (currentRoute != Constants.Pages.LANDING
-                && currentRoute != Constants.Pages.SPLASH)
+                && (currentRoute != Constants.Pages.NETWORK_ERROR)
+                && (currentRoute != Constants.Pages.LANDING)
           }
         })
       }
@@ -105,10 +105,7 @@ fun ForzaApp(
           .background(MaterialTheme.colorScheme.background)
       ) {
         Box {
-          NavHost(navController = navController, startDestination = Constants.Pages.SPLASH) {
-            composable(Constants.Pages.SPLASH) {
-              SplashPage()
-            }
+          NavHost(navController = navController, startDestination = Constants.Pages.LANDING) {
             composable(Constants.Pages.LANDING) {
               LandingPage(networkInfoViewModel, forzaViewModel, navController)
             }
