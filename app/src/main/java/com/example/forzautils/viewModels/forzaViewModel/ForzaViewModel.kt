@@ -9,8 +9,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class ForzaViewModel(private val forzaService: ForzaService): ViewModel() {
-
+class ForzaViewModel(
+  private val forzaService: ForzaService
+) : ViewModel() {
   private val _tag = "ForzaViewModel"
   private val _listening: MutableStateFlow<Int?> = MutableStateFlow(null)
   val listening: StateFlow<Int?> get() = _listening

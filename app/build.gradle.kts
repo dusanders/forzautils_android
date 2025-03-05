@@ -48,6 +48,8 @@ android {
 
 dependencies {
     implementation(libs.mpandroidchart)
+    implementation(libs.vico.compose.m3)
+    implementation(libs.vico.views)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
