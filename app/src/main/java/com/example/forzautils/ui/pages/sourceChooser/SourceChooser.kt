@@ -22,14 +22,14 @@ fun SourceChooserPage() {
         TextCardBox(
           height = 75.dp,
           value = "Recorded Data",
-          label = "Recorded Data or Demo"
+          label = "Replay or Demo"
         )
       }
       Box(modifier = Modifier.weight(1f)) {
         TextCardBox(
           height = 75.dp,
           value = "Live Data",
-          label = "Live Data from Forza"
+          label = "Live Telemetry"
         )
       }
     }

@@ -23,7 +23,6 @@ interface ForzaServiceCallbacks {
  * Class to implement logic and callbacks for the Forza Telemetry module
  */
 class ForzaService(
-  private val wifiService: WiFiService,
   val context: Context,
   private val callbacks: ForzaServiceCallbacks? = null
 ) {
@@ -42,9 +41,6 @@ class ForzaService(
   private val _data: MutableLiveData<TelemetryData?> = MutableLiveData()
   val data: LiveData<TelemetryData?> get() = _data
 
-  private val _wifiInet: MutableLiveData<WiFiService.InetState?> = MutableLiveData()
-  val wifiInet: LiveData<WiFiService.InetState?> get() = _wifiInet
-
   private val forzaSocketEvent = object : ForzaUdpSocketEvents {
     override fun onSocketError(e: Exception) {
       callbacks?.onSocketException(e as SocketException)
@@ -62,9 +58,6 @@ class ForzaService(
 
   init {
     forzaUdpSocket = ForzaUdpSocket(context, forzaSocketEvent)
-    Handler(Looper.getMainLooper()).post {
-      wifiService.inetState.observeForever { postNewInet(it) }
-    }
   }
 
   fun start() {
@@ -79,14 +72,4 @@ class ForzaService(
     forzaUdpSocket.stop()
     _forzaListening.postValue(null)
   }
-
-  private fun postNewInet(inet: WiFiService.InetState?) {
-    _wifiInet.postValue(inet)
-    if(inet != null && inet.ipString != Constants.Inet.DEFAULT_IP) {
-      if(!forzaUdpSocket.isBound) {
-        start()
-      }
-    }
-  }
-
 }

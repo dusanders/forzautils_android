@@ -11,6 +11,8 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.compose.ui.platform.ComposeView
+import androidx.lifecycle.Observer
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.forzautils.services.ForzaService
 import com.example.forzautils.services.ForzaServiceCallbacks
 import com.example.forzautils.services.WiFiService
@@ -21,6 +23,10 @@ import com.example.forzautils.ui.pages.splash.SplashPage
 import com.example.forzautils.ui.theme.ForzaUtilsTheme
 import com.example.forzautils.utils.Constants
 import com.example.forzautils.utils.observeUntil
+import com.example.forzautils.viewModels.forzaViewModel.ForzaViewModel
+import com.example.forzautils.viewModels.forzaViewModel.ForzaViewModelFactory
+import com.example.forzautils.viewModels.networkInfo.NetworkInfoViewModel
+import com.example.forzautils.viewModels.networkInfo.NetworkInfoViewModelFactory
 import com.example.forzautils.viewModels.themeViewModel.ThemeViewModel
 import com.example.forzautils.viewModels.themeViewModel.ThemeViewModelFactory
 import java.net.SocketException
@@ -30,20 +36,41 @@ class MainActivity : ComponentActivity() {
   private val _tag: String = "MainActivity"
 
   private val _dataViewerViewModel: DataViewerViewModel by viewModels()
-  private val themeViewModel by viewModels<ThemeViewModel> {
-    ThemeViewModelFactory(false)
-  }
 
   private lateinit var wiFiService: WiFiService
   private lateinit var forzaService: ForzaService
+  private val themeViewModel by viewModels<ThemeViewModel> {
+    ThemeViewModelFactory(false)
+  }
+  private val networkInfoViewModel by viewModels<NetworkInfoViewModel> {
+    NetworkInfoViewModelFactory(wiFiService, forzaService)
+  }
+  private val forzaViewModel by viewModels<ForzaViewModel> {
+    ForzaViewModelFactory(forzaService)
+  }
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+    wiFiService = WiFiService(this)
+    forzaService = ForzaService(this, object : ForzaServiceCallbacks {
+      override fun onSocketException(e: SocketException) {
+        Log.e(_tag, "Socket exception: ${e.message}")
+      }
+    })
     val uiModeManager = getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
     val isDarkMode = uiModeManager.nightMode == UiModeManager.MODE_NIGHT_YES
     themeViewModel.setTheme(isDarkMode)
     enableEdgeToEdge()
-    start()
+    wiFiService.inetState.observeForever(wifiObserver)
+    setContent {
+      ForzaUtilsTheme(themeViewModel) {
+        ForzaApp(
+          themeViewModel,
+          networkInfoViewModel,
+          forzaViewModel
+        )
+      }
+    }
   }
 
   override fun onDestroy() {
@@ -52,60 +79,17 @@ class MainActivity : ComponentActivity() {
     forzaService.stop()
   }
 
-  private fun start() {
-    wiFiService = WiFiService(
-      baseContext
-    )
-
-    setContent {
-      ComposeView(this).apply {
-        ForzaUtilsTheme(themeViewModel) {
-          SplashPage()
-        }
+  private val wifiObserver =
+    Observer<WiFiService.InetState?> { value ->
+      if (value == null
+        && forzaService.forzaListening.value != null
+      ) {
+        forzaService.stop()
+      }
+      if (value != null
+        && forzaService.forzaListening.value == null
+      ) {
+        forzaService.start()
       }
     }
-    wiFiService.inetState.observeUntil(
-      this,
-      { it != null },
-      {
-        if (it != null) {
-          forzaService = ForzaService(
-            wiFiService,
-            baseContext,
-            forzaServiceCallback
-          )
-          setContent {
-            ForzaUtilsTheme(themeViewModel) {
-              ForzaApp(
-                themeViewModel,
-                wiFiService,
-                forzaService
-              )
-            }
-          }
-        }
-      }
-    )
-  }
-
-  @RequiresApi(Build.VERSION_CODES.S)
-  private fun restart() {
-    wiFiService.stop()
-    forzaService.stop()
-    start()
-  }
-
-  private val forzaServiceCallback = object : ForzaServiceCallbacks {
-    @RequiresApi(Build.VERSION_CODES.S)
-    override fun onSocketException(e: SocketException) {
-      Log.w(_tag, "SocketException: ${e.message}")
-      runOnUiThread {
-        setContent {
-          ForzaUtilsTheme(themeViewModel) {
-            NetworkError()
-          }
-        }
-      }
-    }
-  }
 }

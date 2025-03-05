@@ -38,7 +38,6 @@ fun LabelText(text: String) {
 }
 @Composable
 fun WifiInfoTable(networkInfoViewModel: NetworkInfoViewModel) {
-  val inetInfo by networkInfoViewModel.inetViewInfo.collectAsState()
   Row(
     modifier = Modifier
       .padding(top = 36.dp)
@@ -50,11 +49,11 @@ fun WifiInfoTable(networkInfoViewModel: NetworkInfoViewModel) {
         .weight(1f)
     ) {
       TextCardBox(
-        value = inetInfo.ip,
+        value = networkInfoViewModel.getInetInfo().ip,
         label = "Ip Address"
       )
       TextCardBox(
-        value = inetInfo.port.toString(),
+        value = networkInfoViewModel.getInetInfo().port.toString(),
         label = "Port"
       )
     }
@@ -63,7 +62,7 @@ fun WifiInfoTable(networkInfoViewModel: NetworkInfoViewModel) {
         .weight(1f)
     ) {
       TextCardBox(
-        value = inetInfo.ssid,
+        value = networkInfoViewModel.getInetInfo().ssid,
         label = "WiFi Name"
       )
       TextCardBox(

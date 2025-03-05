@@ -29,8 +29,8 @@ class WiFiService(
    * State of the WiFi connection
    */
   data class InetState(
-    var ipString: String = Constants.Inet.DEFAULT_IP,
-    var ssid: String = Constants.Inet.DEFAULT_SSID
+    var ipString: String,
+    var ssid: String
   ) {
     override fun toString(): String {
       return "InetState(ipString='$ipString', ssid='$ssid')"
@@ -96,6 +96,10 @@ class WiFiService(
   private fun parseAndUpdateState(network: Network, networkCapabilities: NetworkCapabilities) {
     val ipString = getIPAddress(network)
     val ssid = getSSID(networkCapabilities)
+    if (ipString == null || ssid == null) {
+      setInetUnavailable()
+      return
+    }
     if (_inetState.value?.ipString != ipString || _inetState.value?.ssid != ssid) {
       _inetState.postValue(
         InetState(
@@ -107,11 +111,11 @@ class WiFiService(
   }
 
   private fun setInetUnavailable() {
-    _inetState.postValue(InetState())
+    _inetState.postValue(null)
   }
 
-  private fun getSSID(networkCapabilities: NetworkCapabilities): String {
-    var ssid = Constants.Inet.DEFAULT_SSID
+  private fun getSSID(networkCapabilities: NetworkCapabilities): String? {
+    var ssid: String? = null
     val wifiInfo = networkCapabilities.transportInfo as WifiInfo
     val ssidName = wifiInfo.ssid
     if (ssidName.isNotEmpty() && ssidName != Constants.Inet.ANDROID_UNKNOWN_SSID) {
@@ -120,14 +124,14 @@ class WiFiService(
     return ssid
   }
 
-  private fun getIPAddress(network: Network): String {
-    var result = Constants.Inet.DEFAULT_IP
+  private fun getIPAddress(network: Network): String? {
+    var result: String? = null
     val addresses = connectivityManager
       .getLinkProperties(network)
       ?.linkAddresses
     addresses?.forEach {
       if (it.address is Inet4Address && !it.address.isLoopbackAddress) {
-        result = it.address.hostAddress ?: Constants.Inet.DEFAULT_IP
+        result = it.address.hostAddress
       }
     }
     return result

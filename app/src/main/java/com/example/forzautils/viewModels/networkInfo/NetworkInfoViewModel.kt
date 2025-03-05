@@ -10,6 +10,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
+enum class ConnectionStates {
+  CONNECTING,
+  NO_WIFI,
+  FORZA_OPEN,
+}
+
 class NetworkInfoViewModel(
   wifiService: WiFiService,
   forzaService: ForzaService
@@ -17,55 +23,46 @@ class NetworkInfoViewModel(
   private val _tag = "NetworkInfoViewModel"
 
   data class InetViewInfo(
-    val ip: String = Constants.Inet.DEFAULT_IP,
-    val port: Int = Constants.Inet.PORT,
-    val ssid: String = Constants.Inet.DEFAULT_SSID
-  ) {
-    companion object {
-      fun FromInetState(port: Int?, inet: WiFiService.InetState?): InetViewInfo {
-        if (inet == null || port == null) {
-          return InetViewInfo()
-        }
-        return InetViewInfo(inet.ipString, port, inet.ssid)
-      }
-    }
-  }
-
-  private var lastPort: Int? = null
-  private var lastInet: WiFiService.InetState? = null
-
-  private val _inetError: MutableStateFlow<Boolean> = MutableStateFlow(false)
-  val inetError: StateFlow<Boolean> get() = _inetError
-
-  private val _inetViewInfo: MutableStateFlow<InetViewInfo> = MutableStateFlow(
-    InetViewInfo.FromInetState(
-      forzaService.forzaListening.value,
-      wifiService.inetState.value
-    )
+    val ip: String,
+    val port: Int,
+    val ssid: String
   )
-  val inetViewInfo: StateFlow<InetViewInfo> get() = _inetViewInfo
+
+  private val _connectionState: MutableStateFlow<ConnectionStates> =
+    MutableStateFlow(ConnectionStates.NO_WIFI)
+  val connectionState: StateFlow<ConnectionStates> get() = _connectionState
+
+  private var lastInet: WiFiService.InetState? = null
+  private var lastPort: Int? = null
 
   init {
     Log.d(_tag, "Initializing")
     wifiService.inetState.observeForever {
       lastInet = it
-      setInetState()
+      handleNetUpdate()
     }
     forzaService.forzaListening.observeForever {
       lastPort = it
-      setInetState()
+      handleNetUpdate()
     }
   }
 
-  private fun setInetState() {
+  fun getInetInfo(): InetViewInfo {
+    return InetViewInfo(
+      lastInet!!.ipString,
+      lastPort!!,
+      lastInet!!.ssid
+    )
+  }
+
+  fun handleNetUpdate() {
     viewModelScope.launch {
-      Log.d(_tag, "setInetState: ${lastInet.toString()} ${_inetError.value}")
-      if (lastInet != null && lastPort != null) {
-        _inetViewInfo.emit(InetViewInfo.FromInetState(lastPort, lastInet))
-      } else if (lastInet?.ipString == Constants.Inet.DEFAULT_IP) {
-        _inetError.emit(true)
+      if(lastInet == null){
+        _connectionState.emit(ConnectionStates.NO_WIFI)
+      } else if(lastPort == null){
+        _connectionState.emit(ConnectionStates.CONNECTING)
       } else {
-        _inetError.emit(false)
+        _connectionState.emit(ConnectionStates.FORZA_OPEN)
       }
     }
   }
