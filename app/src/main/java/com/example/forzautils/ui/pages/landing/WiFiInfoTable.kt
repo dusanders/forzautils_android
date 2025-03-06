@@ -10,32 +10,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.toUpperCase
 import androidx.compose.ui.unit.dp
+import com.example.forzautils.R
 import com.example.forzautils.ui.components.CardBox
 import com.example.forzautils.ui.components.TextCardBox
 import com.example.forzautils.viewModels.networkInfo.NetworkInfoViewModel
 import com.example.forzautils.ui.theme.FontSizes
 
-@Composable
-fun ValueText(text: String) {
-  Text(
-    text = text,
-    color = MaterialTheme.colorScheme.primary,
-    fontSize = FontSizes.md,
-    fontWeight = FontWeight.Bold
-  )
-}
-@Composable
-fun LabelText(text: String) {
-  Text(
-    text = text.toUpperCase(Locale.current),
-    color = MaterialTheme.colorScheme.onPrimary,
-    fontSize = FontSizes.sm,
-  )
-}
+
 @Composable
 fun WifiInfoTable(networkInfoViewModel: NetworkInfoViewModel) {
   Row(
@@ -50,11 +36,11 @@ fun WifiInfoTable(networkInfoViewModel: NetworkInfoViewModel) {
     ) {
       TextCardBox(
         value = networkInfoViewModel.getInetInfo().ip,
-        label = "Ip Address"
+        label = stringResource(R.string.generic_ipLabel)
       )
       TextCardBox(
         value = networkInfoViewModel.getInetInfo().port.toString(),
-        label = "Port"
+        label = stringResource(R.string.generic_portLabel)
       )
     }
     Column(
@@ -63,11 +49,11 @@ fun WifiInfoTable(networkInfoViewModel: NetworkInfoViewModel) {
     ) {
       TextCardBox(
         value = networkInfoViewModel.getInetInfo().ssid,
-        label = "WiFi Name"
+        label = stringResource(R.string.generic_wifiName)
       )
       TextCardBox(
-        value = "DASH",
-        label = "Telemetry Format"
+        value = stringResource(R.string.generic_DASH),
+        label = stringResource(R.string.generic_telemetryFormat)
       )
     }
   }

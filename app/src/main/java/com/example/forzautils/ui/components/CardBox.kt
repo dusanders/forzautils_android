@@ -1,6 +1,7 @@
 package com.example.forzautils.ui.components
 
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,15 +16,24 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun CardBox(
+  onClicked: (() -> Unit)? = null,
   height: Dp = 50.dp,
   content: @Composable () -> Unit
 ) {
+  var modifier = Modifier
+    .border(Dp.Hairline, MaterialTheme.colorScheme.onPrimary)
+  if (onClicked != null) {
+    modifier = modifier
+      .clickable(
+        onClick = onClicked
+      )
+  }
+  modifier = modifier
+    .padding(26.dp)
+    .fillMaxWidth()
+    .height(height)
   Column(
-    modifier = Modifier
-      .border(Dp.Hairline, MaterialTheme.colorScheme.onPrimary)
-      .padding(26.dp)
-      .fillMaxWidth()
-      .height(height),
+    modifier = modifier,
     horizontalAlignment = Alignment.CenterHorizontally,
     verticalArrangement = Arrangement.SpaceAround
   ) {

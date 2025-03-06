@@ -22,6 +22,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.forzautils.ui.components.AppBarFlyout
 import com.example.forzautils.ui.pages.landing.LandingPage
+import com.example.forzautils.ui.pages.live.LiveViewer
 import com.example.forzautils.ui.pages.networkError.NetworkError
 import com.example.forzautils.ui.pages.sourceChooser.SourceChooserPage
 import com.example.forzautils.ui.pages.splash.SplashPage
@@ -92,7 +93,17 @@ fun ForzaApp(
                 LandingPage(networkInfoViewModel, forzaViewModel, navController)
               }
               composable(Constants.Pages.SOURCE) {
-                SourceChooserPage()
+                SourceChooserPage(
+                  navigateToReplayViewer = {
+                    navController.navigate(Constants.Pages.LIVE_VIEWER)
+                  },
+                  navigateToLiveViewer = {
+                    navController.navigate(Constants.Pages.LIVE_VIEWER)
+                  }
+                )
+              }
+              composable(Constants.Pages.LIVE_VIEWER) {
+                LiveViewer(forzaViewModel)
               }
             }
             if (showSettingsFlyout) {

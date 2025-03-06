@@ -33,12 +33,14 @@ fun LabelText(text: String) {
 
 @Composable
 fun TextCardBox(
+  onClicked: (() -> Unit)? = null,
   height: Dp = 50.dp,
   label: String,
   value: String
 ) {
   CardBox(
-    height = height
+    height = height,
+    onClicked = onClicked
   ) {
     ValueText(text = value)
     LabelText(text = label)

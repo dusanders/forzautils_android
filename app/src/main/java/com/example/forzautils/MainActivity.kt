@@ -2,27 +2,18 @@ package com.example.forzautils
 
 import android.app.UiModeManager
 import android.content.Context
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.annotation.RequiresApi
-import androidx.compose.ui.platform.ComposeView
 import androidx.lifecycle.Observer
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.forzautils.services.ForzaService
 import com.example.forzautils.services.ForzaServiceCallbacks
 import com.example.forzautils.services.WiFiService
 import com.example.forzautils.ui.ForzaApp
-import com.example.forzautils.ui.dataViewer.DataViewerViewModel
-import com.example.forzautils.ui.pages.networkError.NetworkError
-import com.example.forzautils.ui.pages.splash.SplashPage
 import com.example.forzautils.ui.theme.ForzaUtilsTheme
-import com.example.forzautils.utils.Constants
-import com.example.forzautils.utils.observeUntil
 import com.example.forzautils.viewModels.forzaViewModel.ForzaViewModel
 import com.example.forzautils.viewModels.forzaViewModel.ForzaViewModelFactory
 import com.example.forzautils.viewModels.networkInfo.NetworkInfoViewModel
@@ -34,8 +25,6 @@ import java.net.SocketException
 class MainActivity : ComponentActivity() {
 
   private val _tag: String = "MainActivity"
-
-  private val _dataViewerViewModel: DataViewerViewModel by viewModels()
 
   private lateinit var wiFiService: WiFiService
   private lateinit var forzaService: ForzaService

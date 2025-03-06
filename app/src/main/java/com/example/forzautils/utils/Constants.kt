@@ -12,9 +12,9 @@ class Constants {
             val SPLASH = "splash"
             val LANDING = "landing"
             val SOURCE = "source"
-            val NETWORK_INFO = "networkInfo"
+            val LIVE_VIEWER = "liveViewer"
             val NETWORK_ERROR = "networkError"
-            val DATA_VIEWER = "dataViewer"
+            val REPLAY_VIEWER = "replayViewer"
         }
     }
 }

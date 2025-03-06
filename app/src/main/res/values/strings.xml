@@ -20,7 +20,19 @@
     <string name="generic_clear">Clear</string>
     <string name="generic_note">Note:</string>
     <string name="generic_ready">Ready</string>
+    <string name="generic_error">Error</string>
+    <string name="generic_ipLabel">IP Address</string>
+    <string name="generic_wifiName">WiFi Name</string>
+    <string name="generic_telemetryFormat">Telemetry Format</string>
+    <string name="generic_DASH">DASH</string>
+    <string name="generic_portLabel">Port</string>
     <string name="landingPage_forwardDataHeading">Forward Telemetry Data</string>
     <string name="landingPage_forwardDataDesc">Setup Forza\'s Telemetry output to go to the below IP and Port. PLEASE USE DASH FORMAT!</string>
-    <string name="landingPage_simHub_note">If using SimHub, please instruct SimHub to forward telemetry data to the below Ip and Port!</string>"
+    <string name="landingPage_simHub_note">If using SimHub, please instruct SimHub to forward telemetry data to the below Ip and Port!</string>
+    <string name="sourcePage_heading">Choose Source</string>
+    <string name="sourcePage_desc">Select a source to view data from. The app currently only supports viewing recorded data or live Forza telemetry.</string>
+    <string name="sourcePage_liveBtn">Live Data</string>
+    <string name="sourcePage_replayBtn">Replay or Demo</string>
+    <string name="sourcePage_liveDesc">Live Telemetry</string>
+    <string name="sourcePage_replayDesc">Replay or Demo</string>
 </resources>
