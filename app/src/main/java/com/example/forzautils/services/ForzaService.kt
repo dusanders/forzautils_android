@@ -10,6 +10,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import com.example.forzautils.utils.Constants
+import forza.telemetry.data.ForzaConstants
 import forza.telemetry.data.ForzaUdpSocket
 import forza.telemetry.data.TelemetryData
 import forza.telemetry.data.types.ForzaUdpSocketEvents
@@ -48,6 +49,9 @@ class ForzaService(
     }
 
     override fun onData(data: TelemetryData) {
+      Log.d(_tag, "data: isFM8: ${data.gameVersion == ForzaConstants.GameVersion.MOTORSPORT_8} " +
+          "${data.currentEngineRpm} ${data.timeStampMS} ${data.isRaceOn}"
+      )
       _data.postValue(data)
     }
 

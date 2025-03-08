@@ -25,7 +25,7 @@ fun LandingPage(
 ) {
   val tag = "LandingPage"
   val forzaListening by forzaViewModel.listening.collectAsState()
-  Log.d(tag, "Loading with ${forzaListening}")
+
   Column(
     modifier = Modifier
       .fillMaxSize()

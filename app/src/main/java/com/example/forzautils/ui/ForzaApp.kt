@@ -62,7 +62,6 @@ fun ForzaApp(
         }
 
         override fun shouldShowBackButton(): Boolean {
-          Log.d(tag, "current route: ${currentRoute}")
           return currentRoute != null
               && (currentRoute != Constants.Pages.NETWORK_ERROR)
               && (currentRoute != Constants.Pages.LANDING)
