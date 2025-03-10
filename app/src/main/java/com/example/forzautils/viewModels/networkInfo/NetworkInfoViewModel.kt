@@ -55,8 +55,9 @@ class NetworkInfoViewModel(
     )
   }
 
-  fun handleNetUpdate() {
+  private fun handleNetUpdate() {
     viewModelScope.launch {
+      Log.d(_tag, "Update net info: $lastInet, $lastPort")
       if(lastInet == null){
         _connectionState.emit(ConnectionStates.NO_WIFI)
       } else if(lastPort == null){

@@ -8,8 +8,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.forzautils.ui.components.engineInfo.EngineInfo
 import com.example.forzautils.viewModels.EngineInfo.EngineInfoViewModel
 import com.example.forzautils.viewModels.forzaViewModel.ForzaViewModel

@@ -94,6 +94,12 @@ class EngineInfoViewModel(
   private val tag = "HpTqRatingsViewModel"
   private val RPM_STEP = 500
 
+  private val _minRpm = MutableStateFlow<Int>(0)
+  val minRpm: StateFlow<Int> = _minRpm
+
+  private val _maxRpm = MutableStateFlow<Int>(0)
+  val maxRpm: StateFlow<Int> = _maxRpm
+
   private val _gear = MutableStateFlow<Int>(0)
   val gear: StateFlow<Int> = _gear
 
@@ -125,6 +131,12 @@ class EngineInfoViewModel(
       _gear.emit(engineModel.gear)
       _rpm.emit(rpm)
       _throttle.emit(engineModel.throttle)
+      if(_minRpm.value != engineModel.idleRpm.toInt()) {
+        _minRpm.emit(engineModel.idleRpm.toInt())
+      }
+      if(_maxRpm.value != engineModel.maxRpm.toInt()) {
+        _maxRpm.emit(engineModel.maxRpm.toInt())
+      }
     }
   }
 

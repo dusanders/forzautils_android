@@ -64,6 +64,7 @@ class MainActivity : ComponentActivity() {
 
   override fun onDestroy() {
     super.onDestroy()
+    Log.d(_tag, "Destroying")
     wiFiService.stop()
     forzaService.stop()
   }

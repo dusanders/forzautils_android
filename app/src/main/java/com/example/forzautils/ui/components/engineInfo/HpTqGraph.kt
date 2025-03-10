@@ -47,7 +47,7 @@ fun HpTqGraph(
 ) {
   val tag = "HpTqGraph"
   val producer = remember { CartesianChartModelProducer() }
-  val gearLabel = LocalContext.current.getString(R.string.generic_gear, gear)
+  val gearLabel = LocalContext.current.getString(R.string.gear_formatted, gear)
   val horsepowerLabel = LocalContext.current.getString(R.string.generic_horsepower)
   val torqueLabel = LocalContext.current.getString(R.string.generic_torque)
   val colorMap = mapOf(

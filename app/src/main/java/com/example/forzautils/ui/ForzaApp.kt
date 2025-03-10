@@ -105,13 +105,13 @@ fun ForzaApp(
                 LiveViewer(forzaViewModel)
               }
             }
-            if (showSettingsFlyout) {
-              AppBarFlyout(
-                themeViewModel,
-                onBackgroundClick = { showSettingsFlyout = false }
-              )
-            }
           }
+        }
+        if (showSettingsFlyout) {
+          AppBarFlyout(
+            themeViewModel,
+            onBackgroundClick = { showSettingsFlyout = false }
+          )
         }
       }
     }

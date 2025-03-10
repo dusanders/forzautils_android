@@ -14,7 +14,7 @@
     <string name="networkError_desc">There appears to be an error with your WiFi settings as we are unable to find the current WiFi address. Please ensure WiFi is enabled and the device is connected to the same network as Forza.</string>
     <string name="data_options_dynoBtn">HP/Torque Ratings</string>
     <string name="generic_waitingForForzaData">Waiting for Forza data</string>
-    <string name="generic_gear">Gear: %1$d</string>
+    <string name="gear_formatted">Gear: %1$d</string>
     <string name="generic_horsepower">Horsepower</string>
     <string name="generic_torque">Torque</string>
     <string name="generic_clear">Clear</string>
@@ -26,6 +26,9 @@
     <string name="generic_telemetryFormat">Telemetry Format</string>
     <string name="generic_DASH">DASH</string>
     <string name="generic_portLabel">Port</string>
+    <string name="generic_rpmLabel">RPM</string>
+    <string name="generic_throttleLabel">Throttle</string>
+    <string name="generic_gearLabel">Gear</string>
     <string name="landingPage_forwardDataHeading">Forward Telemetry Data</string>
     <string name="landingPage_forwardDataDesc">Setup Forza\'s Telemetry output to go to the below IP and Port. PLEASE USE DASH FORMAT!</string>
     <string name="landingPage_simHub_note">If using SimHub, please instruct SimHub to forward telemetry data to the below Ip and Port!</string>
