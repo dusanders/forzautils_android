@@ -1,9 +1,7 @@
 package com.example.forzautils.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -25,12 +23,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.forzautils.R
-import com.example.forzautils.ui.components.AppBarFlyout
+import com.example.forzautils.ui.components.appBarFlyout.AppBarFlyout
 import com.example.forzautils.viewModels.themeViewModel.ThemeViewModel
 
 interface AppBarActionHandlers {
@@ -41,7 +37,8 @@ interface AppBarActionHandlers {
 
 interface ForzaAppBarActions {
   fun setShowBackButton(show: Boolean)
-  fun injectElement(element: @Composable () -> Unit, cleanUp: (id: String) -> Unit): String
+  fun injectElement(element: @Composable () -> Unit): String
+  fun removeElement(id: String)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -56,6 +53,7 @@ fun ForzaAppBar(
 
   var showSettingsFlyout by remember { mutableStateOf(false) }
   var showBackButton by remember { mutableStateOf(true) }
+  var injectedElements by remember { mutableStateOf(listOf<@Composable () -> Unit>()) }
 
   val actions: ForzaAppBarActions = object : ForzaAppBarActions {
     override fun setShowBackButton(show: Boolean) {
@@ -63,10 +61,14 @@ fun ForzaAppBar(
     }
 
     override fun injectElement(
-      element: @Composable () -> Unit,
-      cleanUp: (id: String) -> Unit
+      element: @Composable () -> Unit
     ): String {
-      TODO("Not yet implemented")
+      injectedElements += element
+      return element.hashCode().toString()
+    }
+
+    override fun removeElement(id: String) {
+      injectedElements = injectedElements.filter { it.hashCode().toString() != id }
     }
   }
   Scaffold(
@@ -128,7 +130,8 @@ fun ForzaAppBar(
       if (showSettingsFlyout) {
         AppBarFlyout(
           themeViewModel,
-          onBackgroundClick = { showSettingsFlyout = false }
+          onBackgroundClick = { showSettingsFlyout = false },
+          additionalContent = injectedElements
         )
       }
     }
