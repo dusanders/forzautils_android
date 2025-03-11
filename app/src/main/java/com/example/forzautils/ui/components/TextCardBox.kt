@@ -35,14 +35,17 @@ fun LabelText(text: String) {
 fun TextCardBox(
   onClicked: (() -> Unit)? = null,
   height: Dp = 50.dp,
-  label: String,
+  padding: Dp = 12.dp,
+  label: String? = null,
   value: String
 ) {
   CardBox(
     height = height,
+    padding = padding,
     onClicked = onClicked
   ) {
     ValueText(text = value)
-    LabelText(text = label)
+    if (label != null)
+      LabelText(text = label)
   }
 }

@@ -33,7 +33,7 @@ fun SourceChooserPage(
         TextCardBox(
           height = 75.dp,
           value = stringResource(R.string.sourcePage_liveBtn),
-          label = stringResource(R.string.sourcePage_replayDesc),
+          label = stringResource(R.string.sourcePage_liveDesc),
           onClicked = navigateToLiveViewer
         )
       }

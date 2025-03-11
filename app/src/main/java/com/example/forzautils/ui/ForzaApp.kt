@@ -45,73 +45,55 @@ fun ForzaApp(
     .value?.destination?.route.let {
       rememberUpdatedState(it)
     }
-
-  var showSettingsFlyout by remember { mutableStateOf(false) }
+  var appBarActions by remember { mutableStateOf<ForzaAppBarActions?>(null) }
   val connectionState by networkInfoViewModel.connectionState.collectAsState()
 
-  Scaffold(
-    modifier = Modifier.fillMaxSize(),
-    topBar = {
-      ForzaAppBar(object : AppBarActionHandlers {
-        override fun onSettingsClick() {
-          showSettingsFlyout = !showSettingsFlyout
-        }
-
-        override fun onBackClick() {
-          navController.popBackStack()
-        }
-
-        override fun shouldShowBackButton(): Boolean {
-          return currentRoute != null
-              && (currentRoute != Constants.Pages.NETWORK_ERROR)
-              && (currentRoute != Constants.Pages.LANDING)
-              && (currentRoute != Constants.Pages.SPLASH)
-        }
-      })
+  LaunchedEffect(currentRoute) {
+    if (currentRoute == Constants.Pages.LANDING) {
+      appBarActions?.setShowBackButton(false)
+    } else {
+      appBarActions?.setShowBackButton(true)
     }
-  ) { innerPadding ->
-    Box(
-      modifier = Modifier
-        .fillMaxSize()
-        .padding(innerPadding)
-        .background(MaterialTheme.colorScheme.background)
-    ) {
-      Box {
-        when (connectionState) {
-          ConnectionStates.CONNECTING -> {
-            SplashPage()
-          }
+  }
 
-          ConnectionStates.NO_WIFI -> {
-            NetworkError()
-          }
+  ForzaAppBar(
+    themeViewModel,
+    onBackPress = {
+      navController.popBackStack()
+    }
+  ) { actions: ForzaAppBarActions ->
+    appBarActions = actions
+    Box {
+      when (connectionState) {
+        ConnectionStates.CONNECTING -> {
+          actions.setShowBackButton(false)
+          SplashPage()
+        }
 
-          ConnectionStates.FORZA_OPEN -> {
-            NavHost(navController = navController, startDestination = Constants.Pages.LANDING) {
-              composable(Constants.Pages.LANDING) {
-                LandingPage(networkInfoViewModel, forzaViewModel, navController)
-              }
-              composable(Constants.Pages.SOURCE) {
-                SourceChooserPage(
-                  navigateToReplayViewer = {
-                    navController.navigate(Constants.Pages.LIVE_VIEWER)
-                  },
-                  navigateToLiveViewer = {
-                    navController.navigate(Constants.Pages.LIVE_VIEWER)
-                  }
-                )
-              }
-              composable(Constants.Pages.LIVE_VIEWER) {
-                LiveViewer(forzaViewModel)
-              }
+        ConnectionStates.NO_WIFI -> {
+          actions.setShowBackButton(false)
+          NetworkError()
+        }
+
+        ConnectionStates.FORZA_OPEN -> {
+          NavHost(navController = navController, startDestination = Constants.Pages.LANDING) {
+            composable(Constants.Pages.LANDING) {
+              LandingPage(networkInfoViewModel, forzaViewModel, navController)
+            }
+            composable(Constants.Pages.SOURCE) {
+              SourceChooserPage(
+                navigateToReplayViewer = {
+                  navController.navigate(Constants.Pages.LIVE_VIEWER)
+                },
+                navigateToLiveViewer = {
+                  navController.navigate(Constants.Pages.LIVE_VIEWER)
+                }
+              )
+            }
+            composable(Constants.Pages.LIVE_VIEWER) {
+              LiveViewer(forzaViewModel)
             }
           }
-        }
-        if (showSettingsFlyout) {
-          AppBarFlyout(
-            themeViewModel,
-            onBackgroundClick = { showSettingsFlyout = false }
-          )
         }
       }
     }

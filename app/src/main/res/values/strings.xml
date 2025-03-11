@@ -29,6 +29,8 @@
     <string name="generic_rpmLabel">RPM</string>
     <string name="generic_throttleLabel">Throttle</string>
     <string name="generic_gearLabel">Gear</string>
+    <string name="generic_settings">Settings</string>
+    <string name="tabContainer_noData">No Data Available</string>
     <string name="landingPage_forwardDataHeading">Forward Telemetry Data</string>
     <string name="landingPage_forwardDataDesc">Setup Forza\'s Telemetry output to go to the below IP and Port. PLEASE USE DASH FORMAT!</string>
     <string name="landingPage_simHub_note">If using SimHub, please instruct SimHub to forward telemetry data to the below Ip and Port!</string>

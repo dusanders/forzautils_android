@@ -8,7 +8,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.stringResource
+import com.example.forzautils.R
 import com.example.forzautils.ui.components.engineInfo.EngineInfo
+import com.example.forzautils.ui.components.engineInfo.TabContainer
 import com.example.forzautils.viewModels.EngineInfo.EngineInfoViewModel
 import com.example.forzautils.viewModels.forzaViewModel.ForzaViewModel
 import forza.telemetry.data.models.EngineModel
@@ -28,7 +31,6 @@ fun LiveViewer(
       engineInfo = EngineModel.fromTelemetryData(telemetryData!!)
     }
   }
-
 //  if (engineInfo != null) {
   EngineInfo(engineViewModel)
 //  }

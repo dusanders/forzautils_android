@@ -110,7 +110,6 @@ fun HpTqGraph(
   }
   Column(
     modifier = Modifier
-      .padding(12.dp)
       .clip(RoundedCornerShape(12.dp))
       .background(MaterialTheme.colorScheme.surface)
   ) {
@@ -118,13 +117,11 @@ fun HpTqGraph(
       text = gearLabel,
       color = MaterialTheme.colorScheme.primary,
       modifier = Modifier
-        .padding(bottom = 8.dp)
         .align(Alignment.CenterHorizontally),
     )
     CartesianChartHost(
       modifier = Modifier
-        .fillMaxWidth()
-        .padding(12.dp),
+        .fillMaxWidth(),
       chart = rememberCartesianChart(
         rememberLineCartesianLayer(
           lineProvider = LineCartesianLayer.LineProvider.series(

@@ -3,7 +3,6 @@ package com.example.forzautils.ui.components.engineInfo
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -22,18 +21,8 @@ val LegendColorMap = ExtraStore.Key<Set<String>>()
 fun EngineInfo(
   engineInfoViewModel: EngineInfoViewModel
 ) {
-  val hpTqRatings by engineInfoViewModel.powerMap.collectAsState()
   Column {
     EngineParameters(engineInfoViewModel)
-    hpTqRatings.keys.sorted().forEach {
-      Box(
-        modifier = Modifier
-          .padding(12.dp)
-          .clip(RoundedCornerShape(12.dp))
-          .background(MaterialTheme.colorScheme.surface)
-      ) {
-        HpTqGraph(it, hpTqRatings[it]!!)
-      }
-    }
+    HpTqGraphContainer(engineInfoViewModel)
   }
 }

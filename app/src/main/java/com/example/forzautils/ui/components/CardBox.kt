@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 fun CardBox(
   onClicked: (() -> Unit)? = null,
   height: Dp = 50.dp,
+  padding: Dp = 12.dp,
   content: @Composable () -> Unit
 ) {
   var modifier = Modifier
@@ -29,7 +30,7 @@ fun CardBox(
       )
   }
   modifier = modifier
-    .padding(26.dp)
+    .padding(padding)
     .fillMaxWidth()
     .height(height)
   Column(
