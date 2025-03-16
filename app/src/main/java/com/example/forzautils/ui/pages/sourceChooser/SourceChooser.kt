@@ -27,6 +27,7 @@ fun SourceChooserPage(
           height = 75.dp,
           value = stringResource(R.string.sourcePage_replayBtn),
           label = stringResource(R.string.sourcePage_replayDesc),
+          onClicked = navigateToReplayViewer
         )
       }
       Box(modifier = Modifier.weight(1f)) {

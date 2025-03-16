@@ -25,6 +25,7 @@ fun LandingPage(
 ) {
   val tag = "LandingPage"
   val forzaListening by forzaViewModel.listening.collectAsState()
+  networkInfoViewModel.forceUpdate()
 
   Column(
     modifier = Modifier

@@ -37,6 +37,8 @@ interface AppBarActionHandlers {
 
 interface ForzaAppBarActions {
   fun setShowBackButton(show: Boolean)
+  fun setTitleElement(element: @Composable () -> Unit)
+  fun removeTitleElement()
   fun injectElement(element: @Composable () -> Unit): String
   fun removeElement(id: String)
 }
@@ -54,10 +56,19 @@ fun ForzaAppBar(
   var showSettingsFlyout by remember { mutableStateOf(false) }
   var showBackButton by remember { mutableStateOf(true) }
   var injectedElements by remember { mutableStateOf(listOf<@Composable () -> Unit>()) }
+  var appBarTitle by remember { mutableStateOf<@Composable () -> Unit>({ }) }
 
   val actions: ForzaAppBarActions = object : ForzaAppBarActions {
     override fun setShowBackButton(show: Boolean) {
       showBackButton = show
+    }
+
+    override fun setTitleElement(element: @Composable () -> Unit) {
+      appBarTitle = element
+    }
+
+    override fun removeTitleElement() {
+      appBarTitle = { }
     }
 
     override fun injectElement(
@@ -75,7 +86,7 @@ fun ForzaAppBar(
     modifier = Modifier.fillMaxSize(),
     topBar = {
       CenterAlignedTopAppBar(
-        title = { },
+        title = { appBarTitle() },
         scrollBehavior = appBarScrollBehavior,
         colors = TopAppBarDefaults.topAppBarColors(
           containerColor = MaterialTheme.colorScheme.background,

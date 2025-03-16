@@ -38,6 +38,9 @@ class ForzaService(
   private val _forzaListening: MutableLiveData<Int?> = MutableLiveData(null)
   val forzaListening: LiveData<Int?> get() = _forzaListening
 
+  private val _rawBytes: MutableLiveData<ByteArray> = MutableLiveData()
+  val rawBytes: LiveData<ByteArray> get() = _rawBytes
+
   // Data state
   private val _data: MutableLiveData<TelemetryData?> = MutableLiveData()
   val data: LiveData<TelemetryData?> get() = _data
@@ -49,10 +52,11 @@ class ForzaService(
     }
 
     override fun onData(data: TelemetryData) {
-      Log.d(_tag, "data: isFM8: ${data.gameVersion == ForzaConstants.GameVersion.MOTORSPORT_8} " +
-          "${data.currentEngineRpm} ${data.timeStampMS} ${data.isRaceOn}"
-      )
+//      Log.d(_tag, "data: isFM8: ${data.gameVersion == ForzaConstants.GameVersion.MOTORSPORT_8} " +
+//          "${data.currentEngineRpm} ${data.timeStampMS} ${data.isRaceOn}"
+//      )
       _data.postValue(data)
+      _rawBytes.postValue(data.rawBytes)
     }
 
     override fun onOpen(port: Int) {

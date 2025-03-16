@@ -7,7 +7,7 @@
     <color name="hpTorque_torqueLine">#567BEE</color>
     <color name="darkTheme_primary">#ffb6c6d6</color>
     <color name="darkTheme_secondary">#ff79a5d1</color>
-    <color name="darkTheme_tertiary">#B36AFA</color>
+    <color name="darkTheme_tertiary">#2E2BF3</color>
     <color name="darkTheme_background">#ff22282c</color>
     <color name="darkTheme_surface">#ff393d41</color>
     <color name="darkTheme_onPrimary">#66b6c6d6</color>
@@ -17,10 +17,10 @@
     <color name="darkTheme_onSurface">#FFFFFF</color>
     <color name="lightTheme_primary">#373838</color>
     <color name="lightTheme_secondary">#9285e3</color>
-    <color name="lightTheme_tertiary">#a55cda</color>
+    <color name="lightTheme_tertiary">#6A56F5</color>
     <color name="lightTheme_background">#f3fbfc</color>
     <color name="lightTheme_surface">#C4CBCC</color>
-    <color name="lightTheme_onPrimary">#6650a4</color>
+    <color name="lightTheme_onPrimary">#9486C0</color>
     <color name="lightTheme_onSecondary">#625b71</color>
     <color name="lightTheme_onTertiary">#7D5260</color>
     <color name="lightTheme_onBackground">#6F628A</color>

@@ -19,17 +19,19 @@ fun HpTqGraphContainer(
   var hpGraphs by remember {
     mutableStateOf<Map<String, @Composable () -> Unit>>(emptyMap())
   }
+
   val thisContext = LocalContext.current
   LaunchedEffect(hpTqRatings) {
-    val newGraphs = mutableMapOf<String, @Composable () -> Unit>()
+    val newGraphs = HashMap<String, @Composable () -> Unit>()
     for(it in hpTqRatings.keys) {
       val keyString = thisContext.getString(R.string.gear_formatted, it)
       newGraphs[keyString] = {
         HpTqGraph(it, hpTqRatings[it]!!)
       }
     }
-    hpGraphs = newGraphs
+    hpGraphs = newGraphs.toSortedMap()
   }
+
   TabContainer(
     "Hp / Tq Ratings",
     hpGraphs

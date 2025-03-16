@@ -9,6 +9,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.lifecycle.Observer
+import com.example.forzautils.services.ForzaRecorder
 import com.example.forzautils.services.ForzaService
 import com.example.forzautils.services.ForzaServiceCallbacks
 import com.example.forzautils.services.WiFiService
@@ -18,9 +19,12 @@ import com.example.forzautils.viewModels.forzaViewModel.ForzaViewModel
 import com.example.forzautils.viewModels.forzaViewModel.ForzaViewModelFactory
 import com.example.forzautils.viewModels.networkInfo.NetworkInfoViewModel
 import com.example.forzautils.viewModels.networkInfo.NetworkInfoViewModelFactory
+import com.example.forzautils.viewModels.replayViewModel.ReplayViewModel
+import com.example.forzautils.viewModels.replayViewModel.ReplayViewModelFactory
 import com.example.forzautils.viewModels.themeViewModel.ThemeViewModel
 import com.example.forzautils.viewModels.themeViewModel.ThemeViewModelFactory
 import java.net.SocketException
+import kotlin.io.path.Path
 
 class MainActivity : ComponentActivity() {
 
@@ -28,6 +32,7 @@ class MainActivity : ComponentActivity() {
 
   private lateinit var wiFiService: WiFiService
   private lateinit var forzaService: ForzaService
+  private lateinit var forzaRecorder: ForzaRecorder
   private val themeViewModel by viewModels<ThemeViewModel> {
     ThemeViewModelFactory(false)
   }
@@ -35,11 +40,16 @@ class MainActivity : ComponentActivity() {
     NetworkInfoViewModelFactory(wiFiService, forzaService)
   }
   private val forzaViewModel by viewModels<ForzaViewModel> {
-    ForzaViewModelFactory(forzaService)
+    ForzaViewModelFactory(forzaRecorder, forzaService)
+  }
+
+  private val replayViewModel by viewModels<ReplayViewModel> {
+    ReplayViewModelFactory(forzaRecorder)
   }
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+    forzaRecorder = ForzaRecorder(this)
     wiFiService = WiFiService(this)
     forzaService = ForzaService(this, object : ForzaServiceCallbacks {
       override fun onSocketException(e: SocketException) {
@@ -56,7 +66,8 @@ class MainActivity : ComponentActivity() {
         ForzaApp(
           themeViewModel,
           networkInfoViewModel,
-          forzaViewModel
+          forzaViewModel,
+          replayViewModel
         )
       }
     }

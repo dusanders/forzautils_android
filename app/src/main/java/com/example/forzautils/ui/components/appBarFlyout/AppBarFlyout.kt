@@ -2,10 +2,10 @@ package com.example.forzautils.ui.components.appBarFlyout
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.indication
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -35,6 +35,7 @@ fun AppBarFlyout(
   ) {
     Column(
       modifier = Modifier
+        .widthIn(155.dp, 195.dp)
         .clickable(
           onClick = { /*ignore*/ },
           enabled = false
@@ -43,7 +44,7 @@ fun AppBarFlyout(
         .background(MaterialTheme.colorScheme.surface)
         .padding(start = 20.dp, end= 20.dp, top = 5.dp, bottom = 5.dp)
     ) {
-      ThemeSwitch(themeViewModel)
+      LightModeSwitch(themeViewModel)
       additionalContent.forEach {
         it()
       }

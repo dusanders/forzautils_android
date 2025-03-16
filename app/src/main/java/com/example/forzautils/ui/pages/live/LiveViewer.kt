@@ -1,6 +1,7 @@
 package com.example.forzautils.ui.pages.live
 
 import android.util.Log
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -15,7 +16,9 @@ import com.example.forzautils.R
 import com.example.forzautils.ui.ForzaAppBarActions
 import com.example.forzautils.ui.components.engineInfo.EngineInfo
 import com.example.forzautils.ui.components.engineInfo.TabContainer
+import com.example.forzautils.ui.components.tireTemps.TireTemps
 import com.example.forzautils.viewModels.EngineInfo.EngineInfoViewModel
+import com.example.forzautils.viewModels.TireViewModel.TireViewModel
 import com.example.forzautils.viewModels.forzaViewModel.ForzaViewModel
 import forza.telemetry.data.models.EngineModel
 
@@ -24,26 +27,48 @@ fun LiveViewer(
   appBarActions: ForzaAppBarActions,
   forzaViewModel: ForzaViewModel,
 ) {
-  val tag = "LiveViewer";
-  val telemetryData by forzaViewModel.data.collectAsState()
-  var engineInfo by remember { mutableStateOf<EngineModel?>(null) }
-  var engineViewModel = EngineInfoViewModel(forzaViewModel)
+  val tag = "LiveViewer"
+  val recording by forzaViewModel.recording.collectAsState()
+  val engineViewModel = EngineInfoViewModel(forzaViewModel)
 
-  LaunchedEffect(telemetryData) {
-    Log.d(tag, "data: ${telemetryData?.currentEngineRpm}")
-    if (telemetryData != null) {
-      engineInfo = EngineModel.fromTelemetryData(telemetryData!!)
+  DisposableEffect(Unit) {
+    appBarActions.setTitleElement {
+      Text(stringResource(R.string.live_viewer))
+    }
+    onDispose {
+      appBarActions.removeTitleElement()
     }
   }
 
+  // Comment for now - should be recording switch?
   DisposableEffect(appBarActions) {
-    val actionId = appBarActions.injectElement({ Text("TEST") })
+    val actionId = appBarActions.injectElement({
+      RecordingSwitch(
+        isRecording = recording,
+        onToggleRecording = {
+          if (recording) {
+            forzaViewModel.stopRecording()
+          } else {
+            forzaViewModel.startRecording()
+          }
+        }
+      )
+    })
     onDispose {
       Log.d(tag, "LiveViewer disposed")
       appBarActions.removeElement(actionId)
     }
   }
-//  if (engineInfo != null) {
-  EngineInfo(engineViewModel)
-//  }
+  LazyColumn(
+    content = {
+      item {
+        EngineInfo(engineViewModel)
+      }
+      item {
+        TireTemps(
+          TireViewModel(forzaViewModel)
+        )
+      }
+    }
+  )
 }

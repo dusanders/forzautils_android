@@ -100,7 +100,7 @@ fun HpTqGraph(
     }
   }
   LaunchedEffect(dataPoints) {
-    rpmList = dataPoints.keys.sorted().map { it }
+    rpmList = dataPoints.keys.sorted()
     hpList = rpmList.map {
       dataPoints[it]!!.power
     }

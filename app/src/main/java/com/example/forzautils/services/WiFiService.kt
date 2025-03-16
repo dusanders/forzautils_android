@@ -38,6 +38,9 @@ class WiFiService(
   }
 
   private val _tag = "WiFiService"
+  private var lastNetwork: Network? = null
+  private var lastNetworkCapabilities: NetworkCapabilities? = null
+
   private var connectivityManager: ConnectivityManager =
     context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
@@ -51,6 +54,23 @@ class WiFiService(
         .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
         .build(),
       this
+    )
+  }
+
+  fun forceUpdate() {
+    Log.d(_tag, "Forcing update")
+    connectivityManager.requestNetwork(
+      NetworkRequest.Builder().addTransportType(NetworkCapabilities.TRANSPORT_WIFI).build(),
+      object: NetworkCallback(FLAG_INCLUDE_LOCATION_INFO) {
+        override fun onCapabilitiesChanged(
+          network: Network,
+          networkCapabilities: NetworkCapabilities
+        ) {
+          super.onCapabilitiesChanged(network, networkCapabilities)
+          checkNetwork(network, networkCapabilities)
+          connectivityManager.unregisterNetworkCallback(this)
+        }
+      }
     )
   }
 
@@ -77,7 +97,9 @@ class WiFiService(
 
   override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) {
     super.onCapabilitiesChanged(network, networkCapabilities)
-    Log.d(_tag, "Capabilities changed: ${networkCapabilities.transportInfo}")
+//    Log.d(_tag, "Capabilities changed: ${networkCapabilities.transportInfo}")
+    lastNetwork = network
+    lastNetworkCapabilities = networkCapabilities
     checkNetwork(network, networkCapabilities)
   }
 

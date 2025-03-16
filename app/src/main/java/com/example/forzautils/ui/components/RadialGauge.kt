@@ -34,7 +34,6 @@ fun convertValueToDegrees(value: Float, min: Float, max: Float): Float {
     return 0f
   }
   val divisor = max - min
-  Log.d("convertValueToDegrees", "divisor: $divisor $min $max $value")
   if(divisor <= 0){
     return 360f
   }

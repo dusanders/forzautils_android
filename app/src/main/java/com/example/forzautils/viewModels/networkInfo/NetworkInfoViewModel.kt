@@ -17,7 +17,7 @@ enum class ConnectionStates {
 }
 
 class NetworkInfoViewModel(
-  wifiService: WiFiService,
+  private val wifiService: WiFiService,
   forzaService: ForzaService
 ) : ViewModel() {
   private val _tag = "NetworkInfoViewModel"
@@ -31,6 +31,9 @@ class NetworkInfoViewModel(
   private val _connectionState: MutableStateFlow<ConnectionStates> =
     MutableStateFlow(ConnectionStates.NO_WIFI)
   val connectionState: StateFlow<ConnectionStates> get() = _connectionState
+
+  private val _inetState: MutableStateFlow<InetViewInfo?> = MutableStateFlow(null)
+  val inetState: StateFlow<InetViewInfo?> get() = _inetState
 
   private var lastInet: WiFiService.InetState? = null
   private var lastPort: Int? = null
@@ -47,12 +50,8 @@ class NetworkInfoViewModel(
     }
   }
 
-  fun getInetInfo(): InetViewInfo {
-    return InetViewInfo(
-      lastInet!!.ipString,
-      lastPort!!,
-      lastInet!!.ssid
-    )
+  fun forceUpdate() {
+    wifiService.forceUpdate()
   }
 
   private fun handleNetUpdate() {
@@ -64,6 +63,15 @@ class NetworkInfoViewModel(
         _connectionState.emit(ConnectionStates.CONNECTING)
       } else {
         _connectionState.emit(ConnectionStates.FORZA_OPEN)
+      }
+      if(lastInet != null && lastPort != null) {
+        _inetState.emit(
+          InetViewInfo(
+            lastInet!!.ipString,
+            lastPort!!,
+            lastInet!!.ssid
+          )
+        )
       }
     }
   }
