@@ -43,7 +43,7 @@ import forza.telemetry.data.models.EngineModel
 @Composable
 fun HpTqGraph(
   gear: Int,
-  dataPoints: Map<Int, EngineModel>
+  dataPoints: Map<Int, EngineModel>?
 ) {
   val tag = "HpTqGraph"
   val producer = remember { CartesianChartModelProducer() }
@@ -69,29 +69,20 @@ fun HpTqGraph(
       color = MaterialTheme.colorScheme.primary,
       textAlignment = Layout.Alignment.ALIGN_CENTER
     )
-  var rpmList = remember {
-    dataPoints.keys.sorted().toList()
-  }
-  var hpList = remember {
-    rpmList.map {
-      dataPoints[it]!!.power
+
+  LaunchedEffect(dataPoints) {
+    if(dataPoints == null) {
+      return@LaunchedEffect
     }
-  }
-  var torqueList = remember {
-    rpmList.map {
-      dataPoints[it]!!.torque
-    }
-  }
-  LaunchedEffect(rpmList, hpList, torqueList) {
     producer.runTransaction {
       lineSeries {
         series(
-          rpmList,
-          hpList,
+          dataPoints.map {it.value.getRoundedRpm()},
+          dataPoints.map {it.value.getHorsepower()},
         )
         series(
-          rpmList,
-          torqueList
+          dataPoints.map {it.value.getRoundedRpm()},
+          dataPoints.map {it.value.torque},
         )
         extras { store ->
           store[LegendColorMap] = colorMap.keys
@@ -99,15 +90,7 @@ fun HpTqGraph(
       }
     }
   }
-  LaunchedEffect(dataPoints) {
-    rpmList = dataPoints.keys.sorted()
-    hpList = rpmList.map {
-      dataPoints[it]!!.power
-    }
-    torqueList = rpmList.map {
-      dataPoints[it]!!.torque
-    }
-  }
+
   Column(
     modifier = Modifier
       .clip(RoundedCornerShape(12.dp))
@@ -136,12 +119,6 @@ fun HpTqGraph(
               )
             )
           ),
-          rangeProvider = CartesianLayerRangeProvider.fixed(
-            rpmList.min().toDouble(),
-            maxX = rpmList.max().toDouble(),
-            minY = hpList.min().coerceAtMost(torqueList.min()).toDouble() - 20,
-            maxY = hpList.max().coerceAtLeast(torqueList.max()).toDouble() + 20
-          )
         ),
         startAxis = VerticalAxis.rememberStart(
           guideline = null,

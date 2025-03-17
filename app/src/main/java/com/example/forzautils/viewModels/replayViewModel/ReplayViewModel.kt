@@ -77,7 +77,9 @@ class ReplayViewModel(
     Log.d(tag, "iterate replay packets")
     replayThread = CoroutineScope(Dispatchers.IO).launch {
       do {
+        Log.d(tag, "iterate replay packets loop")
         val packet = _currentSession.value?.readPacket()
+        Log.d(tag, "got packet: ${packet?.timeStampMS}")
 //        Log.d(tag, "got packet: ${packet?.timeStampMS}")
         if (packet != null) {
           viewModelScope.launch {
@@ -89,7 +91,7 @@ class ReplayViewModel(
     }
   }
 
-  private fun updateAllSessions() {
+  fun updateAllSessions() {
     viewModelScope.launch {
       var result = recorder.getAllRecordings()
       if (result.isEmpty()) {

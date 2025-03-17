@@ -74,22 +74,6 @@ fun PermissionCheck(
   }
   //endregion
 
-  //region Render-time permission check
-//  when (ContextCompat.checkSelfPermission(
-//    LocalContext.current,
-//    Manifest.permission.ACCESS_FINE_LOCATION
-//  )) {
-//    PackageManager.PERMISSION_GRANTED -> {
-//      Log.d(tag, "Permission granted")
-//      continueToApp = true
-//    }
-//
-//    PackageManager.PERMISSION_DENIED -> {
-//      Log.d(tag, "Permission denied")
-//    }
-//  }
-  //endregion
-
 
   if (continueToApp) {
     content()

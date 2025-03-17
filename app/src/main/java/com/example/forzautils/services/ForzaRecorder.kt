@@ -10,7 +10,7 @@ import java.util.UUID
 import kotlin.io.path.Path
 
 interface IForzaRecorder {
-  fun writePacket(data: TelemetryData)
+  fun writePacket(data: TelemetryData?)
   fun getAllRecordings(): List<RecordedSession>
   fun prepareRecording()
   fun stopRecording()
@@ -50,7 +50,7 @@ class ForzaRecorder(val context: Context) : IForzaRecorder {
     )
   }
 
-  override fun writePacket(data:TelemetryData) {
+  override fun writePacket(data:TelemetryData?) {
     currentRecording?.writePacket(data)
   }
 

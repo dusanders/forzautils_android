@@ -129,7 +129,7 @@ val debugGearMap = mapOf(
 class EngineInfoViewModel(
   forzaViewModel: IForzaDataStream
 ) : ViewModel() {
-  private val tag = "HpTqRatingsViewModel"
+  private val tag = "EngineInfoViewModel"
   private val RPM_STEP = 50
 
   private val _minRpm = MutableStateFlow<Int>(0)
@@ -147,8 +147,14 @@ class EngineInfoViewModel(
   private val _throttle = MutableStateFlow<Int>(0)
   val throttle: StateFlow<Int> = _throttle
 
-  private val _powerMap = MutableStateFlow(debugGearMap)
+  private val _powerMap = MutableStateFlow<Map<Int, Map<Int, EngineModel>>>(debugGearMap)
   val powerMap: StateFlow<Map<Int, Map<Int, EngineModel>>> = _powerMap
+
+  private val _power = MutableStateFlow<Float>(0f)
+  val power: StateFlow<Float> = _power
+
+  private val _torque = MutableStateFlow<Float>(0f)
+  val torque: StateFlow<Float> = _torque
 
   init {
     CoroutineScope(Dispatchers.Default).launch {
@@ -169,6 +175,8 @@ class EngineInfoViewModel(
       _gear.emit(engineModel.gear)
       _rpm.emit(rpm)
       _throttle.emit(engineModel.throttle)
+      _power.emit(engineModel.getHorsepower())
+      _torque.emit(engineModel.torque)
       if (_minRpm.value != engineModel.idleRpm.toInt()) {
         _minRpm.emit(engineModel.idleRpm.toInt())
       }
@@ -186,8 +194,10 @@ class EngineInfoViewModel(
     if (engineModel.gear == 0 || engineModel.gear == 11) {
       return
     }
+    if(engineModel.power < 0 || engineModel.torque < 0) {
+      return
+    }
     if (!_powerMap.value.containsKey(engineModel.gear)) {
-      Log.d(tag, "Adding new gear ${engineModel.gear}")
       return _powerMap.emit(
         _powerMap.value.plus(
           engineModel.gear
@@ -202,7 +212,6 @@ class EngineInfoViewModel(
     var foundGearMap = _powerMap.value[engineModel.gear]
 
     if (!foundGearMap!!.containsKey(rpm)) {
-      Log.d(tag, "Adding new rpm $rpm to gear ${engineModel.gear}")
       foundGearMap = foundGearMap.plus(rpm to engineModel)
       return _powerMap.emit(
         _powerMap.value
@@ -213,17 +222,14 @@ class EngineInfoViewModel(
     if (foundGearMap[rpm]!!.getHorsepower() < engineModel.getHorsepower()
       || foundGearMap[rpm]!!.torque < engineModel.torque
     ) {
-      Log.d(tag, "Updating ${engineModel.gear} @ ${rpm} " +
-          "with ${engineModel.power} ${engineModel.torque}")
       foundGearMap = foundGearMap
         .minus(rpm)
         .plus(rpm to engineModel)
-        .toSortedMap()
     }
     return _powerMap.emit(
       _powerMap.value
         .minus(engineModel.gear)
-        .plus(engineModel.gear to foundGearMap)
+        .plus(engineModel.gear to foundGearMap.toSortedMap())
     )
   }
 

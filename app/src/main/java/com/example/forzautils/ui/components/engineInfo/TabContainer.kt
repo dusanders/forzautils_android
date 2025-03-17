@@ -39,7 +39,6 @@ fun TabContainer(
   }
 
   LaunchedEffect(contentMap) {
-    Log.d("TabContainer", "contentMap changed: $contentMap")
     if(contentMap.isNotEmpty() && selectedIndex.isEmpty()) {
       selectedIndex = contentMap.keys.first()
     }
