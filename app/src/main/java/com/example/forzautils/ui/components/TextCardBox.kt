@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.intl.Locale
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.toUpperCase
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -28,12 +29,14 @@ fun LabelText(text: String) {
     text = text.toUpperCase(Locale.current),
     color = MaterialTheme.colorScheme.onPrimary,
     fontSize = FontSizes.sm,
+    textAlign = TextAlign.Center
   )
 }
 
 @Composable
 fun TextCardBox(
   onClicked: (() -> Unit)? = null,
+  onLongClicked: (() -> Unit)? = null,
   height: Dp = 50.dp,
   padding: Dp = 12.dp,
   label: String? = null,
@@ -42,7 +45,8 @@ fun TextCardBox(
   CardBox(
     height = height,
     padding = padding,
-    onClicked = onClicked
+    onClicked = onClicked,
+    onLongClicked = onLongClicked
   ) {
     ValueText(text = value)
     if (label != null)

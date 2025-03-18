@@ -1,7 +1,9 @@
 package com.example.forzautils.ui.components
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,9 +16,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CardBox(
   onClicked: (() -> Unit)? = null,
+  onLongClicked: (() -> Unit)? = null,
   height: Dp = 50.dp,
   padding: Dp = 12.dp,
   content: @Composable () -> Unit
@@ -25,8 +29,9 @@ fun CardBox(
     .border(Dp.Hairline, MaterialTheme.colorScheme.onPrimary)
   if (onClicked != null) {
     modifier = modifier
-      .clickable(
-        onClick = onClicked
+      .combinedClickable(
+        onClick = onClicked,
+        onLongClick = onLongClicked
       )
   }
   modifier = modifier

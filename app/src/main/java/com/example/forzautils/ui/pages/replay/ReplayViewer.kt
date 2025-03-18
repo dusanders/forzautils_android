@@ -34,16 +34,14 @@ fun ReplayViewer(
   appBarActions: ForzaAppBarActions
 ) {
   val tag = "ReplayViewer"
-  var sliderPosition by remember { mutableFloatStateOf(0f) }
-  var currentSegment by remember { mutableIntStateOf(0) }
   var totalSegments by remember { mutableIntStateOf(0) }
   val currentSession by replayViewModel.currentSession.collectAsState()
+  val currentSegment by replayViewModel.packetReadCount.collectAsState()
   val engineViewModel = EngineInfoViewModel(replayViewModel)
   val scrollState = rememberLazyListState()
   val flingBehavior = rememberSnapFlingBehavior(scrollState)
 
   LaunchedEffect(currentSession) {
-    currentSegment = currentSession?.readPacketCount ?: 0
     totalSegments = currentSession?.totalPackets ?: 0
   }
 
@@ -75,22 +73,22 @@ fun ReplayViewer(
         Text(
           modifier = Modifier
             .fillMaxWidth(),
-          text = "segment $currentSegment out of ${totalSegments}",
+          text = "$currentSegment / ${totalSegments}",
           textAlign = TextAlign.Center
         )
         Slider(
-          sliderPosition,
+          currentSegment.toFloat(),
           modifier = Modifier
             .fillMaxWidth()
             .padding(start = 12.dp, end = 12.dp),
           onValueChange = {
             Log.d(tag, "Slider value changed: $it")
-            sliderPosition = it
+            replayViewModel.replayAtOffset(it.toInt())
+//            sliderPosition = it
           },
           onValueChangeFinished = {
             Log.d(tag, "Slider value changed finished")
           },
-          steps = 1,
           valueRange = 0f..(totalSegments.toFloat())
         )
       }

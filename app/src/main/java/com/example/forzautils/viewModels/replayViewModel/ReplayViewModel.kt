@@ -24,6 +24,7 @@ class ReplayViewModel(
 
   private val tag = "ReplayViewModel"
   private var replayThread: Job? = null
+  private var requestedOffset: Int = 0
 
   private val _allSessions: MutableStateFlow<List<RecordedSession>> =
     MutableStateFlow(recorder.getAllRecordings())
@@ -32,6 +33,10 @@ class ReplayViewModel(
   private val _currentSession: MutableStateFlow<SessionFile?> =
     MutableStateFlow(null)
   val currentSession: MutableStateFlow<SessionFile?> get() = _currentSession
+
+  private val _packetReadCount: MutableStateFlow<Int> =
+    MutableStateFlow(0)
+  val packetReadCount: MutableStateFlow<Int> get() = _packetReadCount
 
   private val _forzaData: MutableStateFlow<TelemetryData?> =
     MutableStateFlow(null)
@@ -68,22 +73,26 @@ class ReplayViewModel(
   }
 
   fun deleteSession(id: String) {
-    allSessions.value = allSessions.value.filter { it.id != id }
     recorder.deleteRecording(getSession(id)!!)
     updateAllSessions()
   }
 
+  fun replayAtOffset(offset: Int) {
+    requestedOffset = offset
+    if(replayThread?.isActive?.not() != false) {
+      iterateReplayPackets()
+    }
+  }
+
   private fun iterateReplayPackets() {
-    Log.d(tag, "iterate replay packets")
     replayThread = CoroutineScope(Dispatchers.IO).launch {
       do {
-        Log.d(tag, "iterate replay packets loop")
-        val packet = _currentSession.value?.readPacket()
-        Log.d(tag, "got packet: ${packet?.timeStampMS}")
-//        Log.d(tag, "got packet: ${packet?.timeStampMS}")
+        val packet = _currentSession.value?.readPacket(requestedOffset)
         if (packet != null) {
           viewModelScope.launch {
             _forzaData.emit(packet)
+            requestedOffset = _currentSession.value?.readPacketCount ?: 0
+            _packetReadCount.emit(requestedOffset)
           }
           delay(30)
         }
