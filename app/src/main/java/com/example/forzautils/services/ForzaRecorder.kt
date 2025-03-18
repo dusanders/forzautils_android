@@ -4,6 +4,9 @@ import android.content.Context
 import android.util.Log
 import com.example.forzautils.dataModels.RecordedSession
 import forza.telemetry.data.TelemetryData
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.UUID
@@ -28,7 +31,7 @@ class ForzaRecorder(val context: Context) : IForzaRecorder {
 
   override fun prepareRecording() {
     val completedRecording = currentRecording?.close()
-    if(completedRecording != null) {
+    if (completedRecording != null) {
       sessionsDatabase.addSession(completedRecording)
     }
     val id = UUID.randomUUID().toString()
@@ -50,13 +53,13 @@ class ForzaRecorder(val context: Context) : IForzaRecorder {
     )
   }
 
-  override fun writePacket(data:TelemetryData?) {
+  override fun writePacket(data: TelemetryData?) {
     currentRecording?.writePacket(data)
   }
 
   override fun stopRecording() {
     val dbEntity = currentRecording?.close()
-    if(dbEntity != null) {
+    if (dbEntity != null) {
       sessionsDatabase.addSession(dbEntity)
     }
     currentRecording = null
@@ -74,9 +77,9 @@ class ForzaRecorder(val context: Context) : IForzaRecorder {
   }
 
   override fun openRecording(session: RecordedSession): SessionFile? {
-    try{
+    try {
       return SessionFile(session, context)
-    }catch (e: Exception) {
+    } catch (e: Exception) {
       Log.w(tag, "Failed to open recording (${session.filepath}): ${e.message}")
     }
     return null

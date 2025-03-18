@@ -45,7 +45,7 @@ class ForzaViewModel(
   }
 
   fun startRecording() {
-    if(_recording.value) {
+    if (_recording.value) {
       return
     }
     forzaRecorder.prepareRecording()
@@ -55,7 +55,7 @@ class ForzaViewModel(
   }
 
   fun stopRecording() {
-    if(!_recording.value) {
+    if (!_recording.value) {
       return
     }
     viewModelScope.launch {
