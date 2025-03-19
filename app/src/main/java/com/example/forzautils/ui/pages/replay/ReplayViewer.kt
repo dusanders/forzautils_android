@@ -25,6 +25,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.forzautils.ui.ForzaAppBarActions
 import com.example.forzautils.ui.components.engineInfo.EngineInfo
+import com.example.forzautils.ui.components.trackMap.TrackMap
 import com.example.forzautils.viewModels.EngineInfo.EngineInfoViewModel
 import com.example.forzautils.viewModels.replayViewModel.ReplayViewModel
 
@@ -101,6 +102,7 @@ fun ReplayViewer(
       flingBehavior = flingBehavior,
       content = {
         item {
+          TrackMap(replayViewModel)
           EngineInfo(engineViewModel)
         }
       }
