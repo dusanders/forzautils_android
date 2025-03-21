@@ -58,27 +58,15 @@ fun HpTqGraphContainer(
         .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
         .background(MaterialTheme.colorScheme.surface)
     ) {
-      Box(
-        modifier = Modifier
-          .fillMaxWidth()
-          .padding(12.dp)
-      ) {
-        Text(
-          modifier = Modifier
-            .fillMaxWidth(),
-          fontSize = FontSizes.xl,
-          textAlign = TextAlign.Center,
-          text = "Hp / Tq Ratings"
-        )
-      }
-      if (selectedGear > -1) {
-        Box {
-          HpTqGraph(
-            selectedGear,
-            hpTqRatings[selectedGear]
+      PowerGraph(
+        hpTqRatings[selectedGear]?.values?.map {
+          PowerAtRpm(
+            it.getRoundedRpm(),
+            it.getHorsepower(),
+            it.torque
           )
-        }
-      }
+        } ?: emptyList()
+      )
     }
     Row(
       modifier = Modifier

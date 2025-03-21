@@ -5,6 +5,13 @@
     <color name="hpTorque_text">#FFF</color>
     <color name="hpTorque_hpLine">#E95C5C</color>
     <color name="hpTorque_torqueLine">#567BEE</color>
+    <color name="leftTireTemp">#50E7BF</color>
+    <color name="rightTireTemp">#05A0CA</color>
+    <color name="leftTireSlip">#9CBD94</color>
+    <color name="rightTireSlip">#795FEC</color>
+    <color name="roll_tireDynamics">#C23FDF</color>
+    <color name="pitch_tireDynamics">#DD3572</color>
+    <color name="yaw_tireDynamics">#B19206</color>
     <color name="darkTheme_primary">#ffb6c6d6</color>
     <color name="darkTheme_secondary">#ff79a5d1</color>
     <color name="darkTheme_tertiary">#2E2BF3</color>

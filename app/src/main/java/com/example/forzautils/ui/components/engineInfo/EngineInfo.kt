@@ -15,7 +15,6 @@ import androidx.compose.ui.unit.dp
 import com.example.forzautils.viewModels.EngineInfo.EngineInfoViewModel
 import com.patrykandpatrick.vico.core.common.data.ExtraStore
 
-val LegendColorMap = ExtraStore.Key<Set<String>>()
 
 @Composable
 fun EngineInfo(

@@ -25,8 +25,6 @@ fun EngineParameters(
   val tag = "EngineParameters"
   val currentRpm by viewModel.rpm.collectAsState()
   val currentThrottle by viewModel.throttle.collectAsState()
-  val hp by viewModel.power.collectAsState()
-  val tq by viewModel.torque.collectAsState()
   val currentGear by viewModel.gear.collectAsState()
   val minRpm by viewModel.minRpm.collectAsState()
   val maxRpm by viewModel.maxRpm.collectAsState()
@@ -58,11 +56,6 @@ fun EngineParameters(
         text = currentGear.toString(),
         fontSize = FontSizes.banner,
         fontWeight = FontWeight(900)
-      )
-      Text(
-        textAlign = TextAlign.Center,
-        text = Math.round(hp).toString() +" "+ Math.round(tq).toString(),
-        fontSize = FontSizes.header
       )
     }
     RadialGauge(

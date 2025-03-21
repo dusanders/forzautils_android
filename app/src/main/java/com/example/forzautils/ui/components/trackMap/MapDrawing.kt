@@ -28,7 +28,7 @@ fun MapDrawing(
   var positions = remember { mutableStateOf<List<PlayerPosition>>(emptyList()) }
   var startPosition by remember { mutableStateOf(PlayerPosition(0f, 0f)) }
   val currentScalar = remember { mutableFloatStateOf(1f) }
-  var path = remember { mutableStateOf(Path()) }
+  var path by remember { mutableStateOf(Path()) }
   var lastPos by remember { mutableStateOf(PlayerPosition(0f, 0f)) }
 
   fun normalizePosition(playerPosition: PlayerPosition): PlayerPosition {
@@ -91,8 +91,8 @@ fun MapDrawing(
     val yPos = data!!.positionZ
     val updatedPositions = positions.value.plus(PlayerPosition(xPos, yPos))
     val calculatedPath = scaleDown(currentScalar.floatValue, updatedPositions)
-    path.value = calculatedPath
+    path = calculatedPath
   }
 
-  content(path.value, lastPos)
+  content(path, lastPos)
 }

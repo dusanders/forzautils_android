@@ -64,7 +64,7 @@ fun TrackMap(
         )
         drawCircle(
           color = pathColor,
-          radius = 10.dp.toPx(),
+          radius = 5.dp.toPx(),
           center = Offset(current.positionX, current.positionY)
         )
       }

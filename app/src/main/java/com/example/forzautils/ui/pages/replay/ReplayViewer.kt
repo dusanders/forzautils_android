@@ -25,8 +25,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.forzautils.ui.ForzaAppBarActions
 import com.example.forzautils.ui.components.engineInfo.EngineInfo
+import com.example.forzautils.ui.components.tireTemps.TireTemps
 import com.example.forzautils.ui.components.trackMap.TrackMap
 import com.example.forzautils.viewModels.EngineInfo.EngineInfoViewModel
+import com.example.forzautils.viewModels.TireViewModel.TireViewModel
 import com.example.forzautils.viewModels.replayViewModel.ReplayViewModel
 
 @Composable
@@ -39,6 +41,7 @@ fun ReplayViewer(
   val currentSession by replayViewModel.currentSession.collectAsState()
   val currentSegment by replayViewModel.packetReadCount.collectAsState()
   val engineViewModel = EngineInfoViewModel(replayViewModel)
+  val tireViewModel = TireViewModel(replayViewModel)
   val scrollState = rememberLazyListState()
   val flingBehavior = rememberSnapFlingBehavior(scrollState)
 
@@ -104,6 +107,7 @@ fun ReplayViewer(
         item {
           TrackMap(replayViewModel)
           EngineInfo(engineViewModel)
+          TireTemps(tireViewModel)
         }
       }
     )

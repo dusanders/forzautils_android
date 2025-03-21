@@ -20,6 +20,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.forzautils.R
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
+import com.patrykandpatrick.vico.compose.cartesian.VicoZoomState
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottom
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStart
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLine
@@ -29,6 +30,7 @@ import com.patrykandpatrick.vico.compose.common.component.rememberTextComponent
 import com.patrykandpatrick.vico.compose.common.component.shapeComponent
 import com.patrykandpatrick.vico.compose.common.fill
 import com.patrykandpatrick.vico.compose.common.rememberHorizontalLegend
+import com.patrykandpatrick.vico.core.cartesian.Zoom
 import com.patrykandpatrick.vico.core.cartesian.axis.HorizontalAxis
 import com.patrykandpatrick.vico.core.cartesian.axis.VerticalAxis
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModelProducer
@@ -37,8 +39,11 @@ import com.patrykandpatrick.vico.core.cartesian.data.lineSeries
 import com.patrykandpatrick.vico.core.cartesian.layer.LineCartesianLayer
 import com.patrykandpatrick.vico.core.common.Insets
 import com.patrykandpatrick.vico.core.common.LegendItem
+import com.patrykandpatrick.vico.core.common.data.ExtraStore
 import com.patrykandpatrick.vico.core.common.shape.CorneredShape
 import forza.telemetry.data.models.EngineModel
+
+val LegendColorMap = ExtraStore.Key<Set<String>>()
 
 @Composable
 fun HpTqGraph(
@@ -64,25 +69,24 @@ fun HpTqGraph(
       )
     )
   )
-  val labelComponent =
-    rememberTextComponent(
-      color = MaterialTheme.colorScheme.primary,
-      textAlignment = Layout.Alignment.ALIGN_CENTER
-    )
+  val labelComponent = rememberTextComponent(
+    color = MaterialTheme.colorScheme.primary,
+    textAlignment = Layout.Alignment.ALIGN_CENTER
+  )
 
   LaunchedEffect(dataPoints) {
-    if(dataPoints == null) {
+    if (dataPoints == null) {
       return@LaunchedEffect
     }
     producer.runTransaction {
       lineSeries {
         series(
-          dataPoints.map {it.value.getRoundedRpm()},
-          dataPoints.map {it.value.getHorsepower()},
+          dataPoints.map { it.value.getRoundedRpm() },
+          dataPoints.map { it.value.getHorsepower() },
         )
         series(
-          dataPoints.map {it.value.getRoundedRpm()},
-          dataPoints.map {it.value.torque},
+          dataPoints.map { it.value.getRoundedRpm() },
+          dataPoints.map { it.value.torque },
         )
         extras { store ->
           store[LegendColorMap] = colorMap.keys
@@ -105,6 +109,12 @@ fun HpTqGraph(
     CartesianChartHost(
       modifier = Modifier
         .fillMaxWidth(),
+      zoomState = VicoZoomState(
+        true,
+        Zoom.x(dataPoints?.keys?.size?.toDouble() ?: 1.0),
+        Zoom.fixed(0.0f),
+        Zoom.fixed(3.0f)
+      ),
       chart = rememberCartesianChart(
         rememberLineCartesianLayer(
           lineProvider = LineCartesianLayer.LineProvider.series(
