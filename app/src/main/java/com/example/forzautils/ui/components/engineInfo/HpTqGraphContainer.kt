@@ -20,7 +20,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -36,6 +38,7 @@ fun HpTqGraphContainer(
   val tag = "HpTqGraphContainer"
   val hpTqRatings by engineInfoViewModel.powerMap.collectAsState()
   var selectedGear by remember { mutableIntStateOf(-1) }
+  var selectedColor = MaterialTheme.colorScheme.surface
 
   val thisContext = LocalContext.current
   LaunchedEffect(hpTqRatings) {
@@ -77,6 +80,7 @@ fun HpTqGraphContainer(
           Box(
             modifier = Modifier
               .weight(1f)
+              .background(if(it == selectedGear) selectedColor else Color.Transparent)
           ) {
             TextCardBox(
               padding = 4.dp,

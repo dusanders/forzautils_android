@@ -130,7 +130,7 @@ class EngineInfoViewModel(
   forzaViewModel: IForzaDataStream
 ) : ViewModel() {
   private val tag = "EngineInfoViewModel"
-  private val RPM_STEP = 50
+  private val RPM_STEP = 100
 
   private val _minRpm = MutableStateFlow<Int>(0)
   val minRpm: StateFlow<Int> = _minRpm
@@ -165,12 +165,12 @@ class EngineInfoViewModel(
   }
 
   private fun processData(data: TelemetryData?) {
-    if (data == null) {
+    if (data == null || data.gear == 0 || data.gear == 11) {
       return
     }
     val engineModel = EngineModel.fromTelemetryData(data)
     viewModelScope.launch {
-      updateGearMap(engineModel)
+      _powerMap.emit(updateGearMap(engineModel))
       val rpm = engineModel.getRoundedRpm()
       _gear.emit(engineModel.gear)
       _rpm.emit(rpm)
@@ -186,54 +186,50 @@ class EngineInfoViewModel(
     }
   }
 
-  private suspend fun updateGearMap(engineModel: EngineModel) {
+  private fun updateGearMap(engineModel: EngineModel): Map<Int, Map<Int, EngineModel>> {
     val rpm = engineModel.getRoundedRpm()
     if (!isRpmStep(rpm)) {
-      return
+      Log.d(tag, "not a rpm step: $rpm")
+      return _powerMap.value
     }
     if (engineModel.gear == 0 || engineModel.gear == 11) {
-      return
+      return _powerMap.value
     }
     if(engineModel.power < 0 || engineModel.torque < 0) {
-      return
+      Log.d(tag, "power or torque is negative")
+      return _powerMap.value
     }
     if (!_powerMap.value.containsKey(engineModel.gear)) {
-      return _powerMap.emit(
-        _powerMap.value.plus(
-          engineModel.gear
-              to mapOf(
-            rpm
-                to engineModel
-          ).toSortedMap()
-        )
+      val newMap = _powerMap.value.plus(
+        engineModel.gear
+            to mapOf(
+          rpm
+              to engineModel
+        ).toSortedMap()
       )
+      return newMap
     }
 
     var foundGearMap = _powerMap.value[engineModel.gear]
 
     if (!foundGearMap!!.containsKey(rpm)) {
+      Log.d(tag, "adding rpm: $rpm")
       foundGearMap = foundGearMap.plus(rpm to engineModel)
-      return _powerMap.emit(
-        _powerMap.value
-          .minus(engineModel.gear)
-          .plus(engineModel.gear to foundGearMap)
-      )
     }
-    if (foundGearMap[rpm]!!.getHorsepower() < engineModel.getHorsepower()
+    else if (foundGearMap[rpm]!!.power < engineModel.power
       || foundGearMap[rpm]!!.torque < engineModel.torque
     ) {
+      Log.d(tag, "updating rpm: $rpm")
       foundGearMap = foundGearMap
         .minus(rpm)
         .plus(rpm to engineModel)
     }
-    return _powerMap.emit(
-      _powerMap.value
-        .minus(engineModel.gear)
-        .plus(engineModel.gear to foundGearMap.toSortedMap())
-    )
+    return _powerMap.value.minus(engineModel.gear)
+      .plus(engineModel.gear to foundGearMap.toSortedMap())
   }
 
   private fun isRpmStep(rpm: Int): Boolean {
+    return true
     return rpm % RPM_STEP == 0
   }
 }
