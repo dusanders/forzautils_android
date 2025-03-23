@@ -3,7 +3,9 @@ package com.example.forzautils.ui.components.tireTemps
 import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -26,6 +28,8 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.unit.dp
+import com.example.forzautils.ui.components.TextCardBox
+import com.example.forzautils.utils.toPrecision
 import com.example.forzautils.viewModels.tireViewModel.TireDynamicsEvent
 
 data class Coordinate(
@@ -87,7 +91,7 @@ fun TireDynamicsGraph(
       )
       ratioPath.lineTo(
         xMove,
-        ratioYBaseline - (event.combinedSlip * ratioScalar)
+        ratioYBaseline - (event.ratio * ratioScalar)
       )
     }
   }
@@ -96,28 +100,8 @@ fun TireDynamicsGraph(
     modifier = Modifier
       .fillMaxSize()
       .padding(24.dp)
-      .clip(RoundedCornerShape(12.dp))
+      .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
   ) {
-    Text(
-      modifier = Modifier.padding(bottom = 12.dp),
-      text = "Steer angle: ${eventList.lastOrNull()?.steeringAngle ?: 0f}",
-      color = steerColor,
-    )
-    Text(
-      modifier = Modifier.padding(bottom = 12.dp),
-      text = "Temp: ${(eventList.lastOrNull()?.temp ?: 0f) * tempScalar}",
-      color = tempColor,
-    )
-    Text (
-      modifier = Modifier.padding(bottom = 12.dp),
-      text = "Slip: ${(eventList.lastOrNull()?.slip ?: 0f) * slipScalar}",
-      color = slipColor,
-    )
-    Text (
-      text = "Ratio: ${(eventList.lastOrNull()?.ratio ?: 0f) * ratioScalar}",
-      color = ratioColor,
-      modifier = Modifier.padding(bottom = 12.dp)
-    )
     Canvas(
       modifier = Modifier
         .fillMaxWidth()
@@ -168,6 +152,44 @@ fun TireDynamicsGraph(
           cap = Stroke.DefaultCap
         )
       )
+    }
+    Row(
+      modifier = Modifier
+        .fillMaxWidth()
+    ) {
+      Box(modifier = Modifier.weight(1f)) {
+        TextCardBox(
+          value = (eventList.lastOrNull()?.steeringAngle ?: 0f).toPrecision(2).toString(),
+          valueColor = steerColor,
+          label = "Steering Angle"
+        )
+      }
+      Box(modifier = Modifier.weight(1f)) {
+        TextCardBox(
+          value = (eventList.lastOrNull()?.temp ?: 0f).toPrecision(2).toString(),
+          valueColor = tempColor,
+          label = "Temp"
+        )
+      }
+    }
+    Row(
+      modifier = Modifier
+        .fillMaxWidth()
+    ) {
+      Box(modifier = Modifier.weight(1f)) {
+        TextCardBox(
+          value = (eventList.lastOrNull()?.slip ?: 0f).toPrecision(2).toString(),
+          valueColor = slipColor,
+          label = "Slip Angle"
+        )
+      }
+      Box(modifier = Modifier.weight(1f)) {
+        TextCardBox(
+          value = (eventList.lastOrNull()?.ratio ?: 0f).toPrecision(2).toString(),
+          valueColor = ratioColor,
+          label = "Slip Ratio"
+        )
+      }
     }
   }
 }

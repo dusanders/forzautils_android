@@ -27,3 +27,8 @@ fun <T> LiveData<T>.observeUntil(
     }
   })
 }
+
+fun Float.toPrecision(precision: Int): Float {
+  val bigDecimalValue = java.math.BigDecimal(toDouble()).setScale(precision, java.math.RoundingMode.HALF_UP)
+  return bigDecimalValue.toFloat()
+}
