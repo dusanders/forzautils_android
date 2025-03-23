@@ -5,6 +5,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.style.TextAlign
@@ -14,10 +15,10 @@ import androidx.compose.ui.unit.dp
 import com.example.forzautils.ui.theme.FontSizes
 
 @Composable
-fun ValueText(text: String) {
+fun ValueText(text: String, color: Color? = null) {
   Text(
     text = text,
-    color = MaterialTheme.colorScheme.primary,
+    color = color ?: MaterialTheme.colorScheme.primary,
     fontSize = FontSizes.md,
     fontWeight = FontWeight.Bold
   )
@@ -40,7 +41,8 @@ fun TextCardBox(
   height: Dp = 50.dp,
   padding: Dp = 12.dp,
   label: String? = null,
-  value: String
+  value: String,
+  valueColor: Color? = MaterialTheme.colorScheme.primary,
 ) {
   CardBox(
     height = height,
@@ -48,7 +50,10 @@ fun TextCardBox(
     onClicked = onClicked,
     onLongClicked = onLongClicked
   ) {
-    ValueText(text = value)
+    ValueText(
+      text = value,
+      color = valueColor
+    )
     if (label != null)
       LabelText(text = label)
   }
