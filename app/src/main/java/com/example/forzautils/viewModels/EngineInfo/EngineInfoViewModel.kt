@@ -1,4 +1,4 @@
-package com.example.forzautils.viewModels.EngineInfo
+package com.example.forzautils.viewModels.engineInfo
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -130,7 +130,6 @@ class EngineInfoViewModel(
   forzaViewModel: IForzaDataStream
 ) : ViewModel() {
   private val tag = "EngineInfoViewModel"
-  private val RPM_STEP = 100
 
   private val _minRpm = MutableStateFlow<Int>(0)
   val minRpm: StateFlow<Int> = _minRpm
@@ -188,10 +187,6 @@ class EngineInfoViewModel(
 
   private fun updateGearMap(engineModel: EngineModel): Map<Int, Map<Int, EngineModel>> {
     val rpm = engineModel.getRoundedRpm()
-    if (!isRpmStep(rpm)) {
-      Log.d(tag, "not a rpm step: $rpm")
-      return _powerMap.value
-    }
     if (engineModel.gear == 0 || engineModel.gear == 11) {
       return _powerMap.value
     }
@@ -213,13 +208,11 @@ class EngineInfoViewModel(
     var foundGearMap = _powerMap.value[engineModel.gear]
 
     if (!foundGearMap!!.containsKey(rpm)) {
-      Log.d(tag, "adding rpm: $rpm")
       foundGearMap = foundGearMap.plus(rpm to engineModel)
     }
     else if (foundGearMap[rpm]!!.power < engineModel.power
       || foundGearMap[rpm]!!.torque < engineModel.torque
     ) {
-      Log.d(tag, "updating rpm: $rpm")
       foundGearMap = foundGearMap
         .minus(rpm)
         .plus(rpm to engineModel)
@@ -228,8 +221,4 @@ class EngineInfoViewModel(
       .plus(engineModel.gear to foundGearMap.toSortedMap())
   }
 
-  private fun isRpmStep(rpm: Int): Boolean {
-    return true
-    return rpm % RPM_STEP == 0
-  }
 }

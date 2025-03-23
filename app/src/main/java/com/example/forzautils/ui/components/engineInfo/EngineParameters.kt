@@ -16,7 +16,7 @@ import androidx.compose.ui.text.style.TextAlign
 import com.example.forzautils.R
 import com.example.forzautils.ui.components.RadialGauge
 import com.example.forzautils.ui.theme.FontSizes
-import com.example.forzautils.viewModels.EngineInfo.EngineInfoViewModel
+import com.example.forzautils.viewModels.engineInfo.EngineInfoViewModel
 
 @Composable
 fun EngineParameters(

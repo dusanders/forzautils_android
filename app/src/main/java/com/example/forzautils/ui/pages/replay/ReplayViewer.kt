@@ -27,8 +27,8 @@ import com.example.forzautils.ui.ForzaAppBarActions
 import com.example.forzautils.ui.components.engineInfo.EngineInfo
 import com.example.forzautils.ui.components.tireTemps.TireTemps
 import com.example.forzautils.ui.components.trackMap.TrackMap
-import com.example.forzautils.viewModels.EngineInfo.EngineInfoViewModel
-import com.example.forzautils.viewModels.TireViewModel.TireViewModel
+import com.example.forzautils.viewModels.engineInfo.EngineInfoViewModel
+import com.example.forzautils.viewModels.tireViewModel.TireViewModel
 import com.example.forzautils.viewModels.replayViewModel.ReplayViewModel
 
 @Composable
