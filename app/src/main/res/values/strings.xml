@@ -22,7 +22,9 @@
     <string name="generic_ready">Ready</string>
     <string name="generic_error">Error</string>
     <string name="generic_ipLabel">IP Address</string>
-    <string name="generic_wifiName">WiFi Name</string>
+    <string name="generic_wifiConnection">WiFi Connection</string>
+    <string name="generic_connected">Connected</string>
+    <string name="generic_disconnected">Disconnected</string>
     <string name="generic_telemetryFormat">Telemetry Format</string>
     <string name="generic_DASH">DASH</string>
     <string name="generic_portLabel">Port</string>

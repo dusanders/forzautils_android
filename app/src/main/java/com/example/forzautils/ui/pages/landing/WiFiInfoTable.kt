@@ -42,8 +42,8 @@ fun WifiInfoTable(networkInfoViewModel: NetworkInfoViewModel) {
         .weight(1f)
     ) {
       TextCardBox(
-        value = inetInfo?.ssid ?: "-",
-        label = stringResource(R.string.generic_wifiName)
+        value = if(inetInfo?.ip?.isNotEmpty() == true) stringResource(R.string.generic_connected) else stringResource(R.string.generic_disconnected),
+        label = stringResource(R.string.generic_wifiConnection)
       )
       TextCardBox(
         value = stringResource(R.string.generic_DASH),

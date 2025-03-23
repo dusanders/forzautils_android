@@ -23,17 +23,17 @@ import java.net.Inet4Address
  */
 class WiFiService(
   context: Context
-) : NetworkCallback(FLAG_INCLUDE_LOCATION_INFO) {
+) : NetworkCallback() {
 
   /**
    * State of the WiFi connection
    */
   data class InetState(
     var ipString: String,
-    var ssid: String
+    var hasWifi: Boolean = false,
   ) {
     override fun toString(): String {
-      return "InetState(ipString='$ipString', ssid='$ssid')"
+      return "InetState(ipString='$ipString', hasWifi=$hasWifi')"
     }
   }
 
@@ -122,11 +122,11 @@ class WiFiService(
       setInetUnavailable()
       return
     }
-    if (_inetState.value?.ipString != ipString || _inetState.value?.ssid != ssid) {
+    if (_inetState.value?.ipString != ipString) {
       _inetState.postValue(
         InetState(
           ipString = ipString,
-          ssid = ssid
+          hasWifi = true,
         )
       )
     }
@@ -139,9 +139,8 @@ class WiFiService(
   private fun getSSID(networkCapabilities: NetworkCapabilities): String? {
     var ssid: String? = null
     val wifiInfo = networkCapabilities.transportInfo as WifiInfo
-    val ssidName = wifiInfo.ssid
-    if (ssidName.isNotEmpty() && ssidName != Constants.Inet.ANDROID_UNKNOWN_SSID) {
-      ssid = ssidName.substring(1, ssidName.length - 1)
+    if (wifiInfo.ssid != null && wifiInfo.ssid.isNotEmpty()) {
+      ssid = wifiInfo.ssid.substring(1, wifiInfo.ssid.length - 1)
     }
     return ssid
   }

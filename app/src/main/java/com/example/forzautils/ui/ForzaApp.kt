@@ -1,6 +1,8 @@
 package com.example.forzautils.ui
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -9,6 +11,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -51,58 +55,60 @@ fun ForzaApp(
       appBarActions?.setShowBackButton(true)
     }
   }
-  PermissionCheck(){
-    ForzaAppBar(
-      themeViewModel,
-      onBackPress = {
-        navController.popBackStack()
-      }
-    ) { actions: ForzaAppBarActions ->
-      appBarActions = actions
-      Box {
-        when (connectionState) {
-          ConnectionStates.CONNECTING -> {
-            actions.setShowBackButton(false)
-            SplashPage()
-          }
+  ForzaAppBar(
+    themeViewModel,
+    onBackPress = {
+      navController.popBackStack()
+    }
+  ) { actions: ForzaAppBarActions ->
+    appBarActions = actions
+    Column(
+      modifier = Modifier
+        .fillMaxSize(),
+      horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+      when (connectionState) {
+        ConnectionStates.CONNECTING -> {
+          actions.setShowBackButton(false)
+          SplashPage()
+        }
 
-          ConnectionStates.NO_WIFI -> {
-            actions.setShowBackButton(false)
-            NetworkError()
-          }
+        ConnectionStates.NO_WIFI -> {
+          actions.setShowBackButton(false)
+          NetworkError()
+        }
 
-          ConnectionStates.FORZA_OPEN -> {
-            NavHost(navController = navController, startDestination = Constants.Pages.LANDING) {
-              composable(Constants.Pages.LANDING) {
-                LandingPage(networkInfoViewModel, forzaViewModel, navController)
-              }
-              composable(Constants.Pages.SOURCE) {
-                SourceChooserPage(
-                  navigateToReplayViewer = {
-                    navController.navigate(Constants.Pages.REPLAY_LIST)
-                  },
-                  navigateToLiveViewer = {
-                    navController.navigate(Constants.Pages.LIVE_VIEWER)
-                  }
-                )
-              }
-              composable(Constants.Pages.LIVE_VIEWER) {
-                LiveViewer(actions, forzaViewModel)
-              }
-              composable(Constants.Pages.REPLAY_LIST) {
-                ReplayList(
-                  replayViewModel,
-                  navigateToReplayViewer = {
-                    navController.navigate(Constants.Pages.REPLAY_VIEWER)
-                  }
-                )
-              }
-              composable(Constants.Pages.REPLAY_VIEWER) {
-                ReplayViewer(
-                  replayViewModel,
-                  actions
-                )
-              }
+        ConnectionStates.FORZA_OPEN -> {
+          NavHost(navController = navController, startDestination = Constants.Pages.LANDING) {
+            composable(Constants.Pages.LANDING) {
+              LandingPage(networkInfoViewModel, forzaViewModel, navController)
+            }
+            composable(Constants.Pages.SOURCE) {
+              SourceChooserPage(
+                navigateToReplayViewer = {
+                  navController.navigate(Constants.Pages.REPLAY_LIST)
+                },
+                navigateToLiveViewer = {
+                  navController.navigate(Constants.Pages.LIVE_VIEWER)
+                }
+              )
+            }
+            composable(Constants.Pages.LIVE_VIEWER) {
+              LiveViewer(actions, forzaViewModel)
+            }
+            composable(Constants.Pages.REPLAY_LIST) {
+              ReplayList(
+                replayViewModel,
+                navigateToReplayViewer = {
+                  navController.navigate(Constants.Pages.REPLAY_VIEWER)
+                }
+              )
+            }
+            composable(Constants.Pages.REPLAY_VIEWER) {
+              ReplayViewer(
+                replayViewModel,
+                actions
+              )
             }
           }
         }

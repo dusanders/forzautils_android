@@ -4,7 +4,6 @@ class Constants {
     class Inet {
         companion object {
             val PORT = 5400
-            val ANDROID_UNKNOWN_SSID = "unknown ssid"
         }
     }
     class Pages {

@@ -25,7 +25,6 @@ class NetworkInfoViewModel(
   data class InetViewInfo(
     val ip: String,
     val port: Int,
-    val ssid: String
   )
 
   private val _connectionState: MutableStateFlow<ConnectionStates> =
@@ -69,7 +68,6 @@ class NetworkInfoViewModel(
           InetViewInfo(
             lastInet!!.ipString,
             lastPort!!,
-            lastInet!!.ssid
           )
         )
       }
