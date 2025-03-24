@@ -44,6 +44,9 @@ class TireViewModel(
   val leftRearDynamicEvent = DataWindow<TireDynamicsEvent>(windowSize)
   val rightRearDynamicEvent = DataWindow<TireDynamicsEvent>(windowSize)
 
+  val frontAvgDynamicEvents = DataWindow<TireDynamicsEvent>(windowSize)
+  val rearAvgDynamicEvents = DataWindow<TireDynamicsEvent>(windowSize)
+
   init {
     CoroutineScope(Dispatchers.Default).launch {
       forzaDataStream.data.collect {
@@ -62,6 +65,32 @@ class TireViewModel(
     spatialModelsWindow.add(spatialModel)
     val carModel = data.getCarInfo()
     carModelsWindow.add(carModel)
+    frontAvgDynamicEvents.add(
+      TireDynamicsEvent(
+        steeringAngle = carModel.steer.toFloat(),
+        roll = spatialModel.roll,
+        pitch = spatialModel.pitch,
+        yaw = spatialModel.yaw,
+        temp = (tireModel.tireTempFrontLeft + tireModel.tireTempFrontRight) / 2,
+        slip = (tireModel.tireSlipAngleFrontLeft + tireModel.tireSlipAngleFrontRight) / 2,
+        combinedSlip = (tireModel.tireCombinedSlipFrontLeft + tireModel.tireCombinedSlipFrontRight) / 2,
+        wear = (tireModel.tireWearFrontLeft + tireModel.tireWearFrontRight) / 2,
+        ratio = (tireModel.tireSlipRatioFrontLeft + tireModel.tireSlipRatioFrontRight) / 2
+      )
+    )
+    rearAvgDynamicEvents.add(
+      TireDynamicsEvent(
+        steeringAngle = carModel.steer.toFloat(),
+        roll = spatialModel.roll,
+        pitch = spatialModel.pitch,
+        yaw = spatialModel.yaw,
+        temp = (tireModel.tireTempRearLeft + tireModel.tireTempRearRight) / 2,
+        slip = (tireModel.tireSlipAngleRearLeft + tireModel.tireSlipAngleRearRight) / 2,
+        combinedSlip = (tireModel.tireCombinedSlipRearLeft + tireModel.tireCombinedSlipRearRight) / 2,
+        wear = (tireModel.tireWearRearLeft + tireModel.tireWearRearRight) / 2,
+        ratio = (tireModel.tireSlipRatioRearLeft + tireModel.tireSlipRatioRearRight) / 2
+      )
+    )
     leftFrontDynamicEvent.add(
       TireDynamicsEvent(
         steeringAngle = carModel.steer.toFloat(),

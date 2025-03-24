@@ -191,7 +191,7 @@ class EngineInfoViewModel(
       return _powerMap.value
     }
     if(engineModel.power < 0 || engineModel.torque < 0) {
-      Log.d(tag, "power or torque is negative")
+//      Log.d(tag, "power or torque is negative")
       return _powerMap.value
     }
     if (!_powerMap.value.containsKey(engineModel.gear)) {

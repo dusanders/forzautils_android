@@ -39,8 +39,8 @@ import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import com.example.forzautils.R
-import com.example.forzautils.ui.components.tireTemps.Coordinate
 import com.example.forzautils.ui.theme.FontSizes
+import com.example.forzautils.utils.CanvasCoordinate
 
 data class PowerAtRpm(
   val rpm: Int,
@@ -62,7 +62,7 @@ fun PowerGraph(
   var yNormalizer by remember { mutableFloatStateOf(0f) }
   var layoutHeight by remember { mutableFloatStateOf(0f) }
   var layoutWidth by remember { mutableFloatStateOf(0f) }
-  var centerCoordinate by remember { mutableStateOf(Coordinate(0f, 0f)) }
+  var centerCoordinate by remember { mutableStateOf(CanvasCoordinate(0f, 0f)) }
   var hpPath by remember { mutableStateOf(Path()) }
   var tqPath by remember { mutableStateOf(Path()) }
   var bottomLabelMeasure by remember { mutableFloatStateOf(0f) }
@@ -160,7 +160,7 @@ fun PowerGraph(
         .onPlaced { layout ->
           layoutHeight = layout.size.height.toFloat()
           layoutWidth = layout.size.width.toFloat()
-          centerCoordinate = Coordinate(
+          centerCoordinate = CanvasCoordinate(
             layoutWidth / 2,
             layoutHeight / 2
           )

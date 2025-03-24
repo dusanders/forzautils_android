@@ -29,13 +29,9 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.unit.dp
 import com.example.forzautils.ui.components.TextCardBox
+import com.example.forzautils.utils.CanvasCoordinate
 import com.example.forzautils.utils.toPrecision
 import com.example.forzautils.viewModels.tireViewModel.TireDynamicsEvent
-
-data class Coordinate(
-  val x: Float,
-  val y: Float
-)
 
 @Composable
 fun TireDynamicsGraph(
@@ -49,7 +45,7 @@ fun TireDynamicsGraph(
   var xNormalizer by remember { mutableFloatStateOf(0f) }
   var layoutHeight by remember { mutableFloatStateOf(0f) }
   var layoutWidth by remember { mutableFloatStateOf(0f) }
-  var centerCoordinate by remember { mutableStateOf(Coordinate(0f, 0f)) }
+  var centerCoordinate by remember { mutableStateOf(CanvasCoordinate(0f, 0f)) }
 
   LaunchedEffect(layoutWidth, listSize) {
     val xMovements = (layoutWidth / listSize)
@@ -105,12 +101,12 @@ fun TireDynamicsGraph(
     Canvas(
       modifier = Modifier
         .fillMaxWidth()
-        .height(250.dp)
+        .height(200.dp)
         .background(MaterialTheme.colorScheme.surface)
         .onPlaced { coords ->
           layoutHeight = coords.size.height.toFloat()
           layoutWidth = coords.size.width.toFloat()
-          centerCoordinate = Coordinate(
+          centerCoordinate = CanvasCoordinate(
             x = layoutWidth / 2,
             y = layoutHeight / 2
           )
