@@ -15,16 +15,15 @@ import com.example.forzautils.services.ForzaServiceCallbacks
 import com.example.forzautils.services.WiFiService
 import com.example.forzautils.ui.ForzaApp
 import com.example.forzautils.ui.theme.ForzaUtilsTheme
-import com.example.forzautils.viewModels.forzaViewModel.ForzaViewModel
-import com.example.forzautils.viewModels.forzaViewModel.ForzaViewModelFactory
+import com.example.forzautils.viewModels.forza.ForzaViewModel
+import com.example.forzautils.viewModels.forza.ForzaViewModelFactory
 import com.example.forzautils.viewModels.networkInfo.NetworkInfoViewModel
 import com.example.forzautils.viewModels.networkInfo.NetworkInfoViewModelFactory
-import com.example.forzautils.viewModels.replayViewModel.ReplayViewModel
-import com.example.forzautils.viewModels.replayViewModel.ReplayViewModelFactory
-import com.example.forzautils.viewModels.themeViewModel.ThemeViewModel
-import com.example.forzautils.viewModels.themeViewModel.ThemeViewModelFactory
+import com.example.forzautils.viewModels.replay.ReplayViewModel
+import com.example.forzautils.viewModels.replay.ReplayViewModelFactory
+import com.example.forzautils.viewModels.theme.ThemeViewModel
+import com.example.forzautils.viewModels.theme.ThemeViewModelFactory
 import java.net.SocketException
-import kotlin.io.path.Path
 
 class MainActivity : ComponentActivity() {
 
@@ -45,6 +44,10 @@ class MainActivity : ComponentActivity() {
 
   private val replayViewModel by viewModels<ReplayViewModel> {
     ReplayViewModelFactory(forzaRecorder)
+  }
+
+  init {
+//    StrictMode.enableDefaults()
   }
 
   override fun onCreate(savedInstanceState: Bundle?) {
