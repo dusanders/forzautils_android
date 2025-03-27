@@ -1,4 +1,4 @@
-package com.example.forzautils.viewModels.tireViewModel
+package com.example.forzautils.viewModels.tire
 
 import androidx.lifecycle.ViewModel
 import com.example.forzautils.utils.DataWindow

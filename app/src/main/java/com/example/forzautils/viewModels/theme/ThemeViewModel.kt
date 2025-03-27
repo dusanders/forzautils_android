@@ -1,8 +1,6 @@
-package com.example.forzautils.viewModels.themeViewModel
+package com.example.forzautils.viewModels.theme
 
 import android.util.Log
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import kotlinx.coroutines.CoroutineScope

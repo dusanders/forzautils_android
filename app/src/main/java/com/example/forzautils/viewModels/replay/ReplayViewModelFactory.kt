@@ -1,4 +1,4 @@
-package com.example.forzautils.viewModels.replayViewModel
+package com.example.forzautils.viewModels.replay
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider

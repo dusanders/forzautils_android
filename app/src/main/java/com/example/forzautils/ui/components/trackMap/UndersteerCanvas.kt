@@ -17,9 +17,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.unit.dp
 import com.example.forzautils.utils.CanvasCoordinate
-import com.example.forzautils.viewModels.forzaViewModel.ForzaViewModel
-import com.example.forzautils.viewModels.interfaces.IForzaDataStream
-import com.example.forzautils.viewModels.tireViewModel.TireViewModel
+import com.example.forzautils.viewModels.trackMap.TrackMapViewModel
 
 data class UndersteerSegment(
   var path: Path,
@@ -28,63 +26,43 @@ data class UndersteerSegment(
 
 @Composable
 fun UndersteerCanvas(
-  tireViewModel: TireViewModel,
-  forzaViewModel: IForzaDataStream
+  trackMapViewModel: TrackMapViewModel,
+  startPositionActual: CanvasCoordinate?,
 ) {
   val tag = "UndersteerCanvas"
   var canvasCenter by remember { mutableStateOf(CanvasCoordinate(0f, 0f)) }
-  var startPosition by remember { mutableStateOf(CanvasCoordinate(0f, 0f)) }
-  val frontAvg by tireViewModel.frontAvgDynamicEvents.window.collectAsState()
-  val forzaData by forzaViewModel.data.collectAsState()
+  val events by trackMapViewModel.understeerWindow.window.collectAsState()
   val segments = remember { mutableStateOf(emptyList<UndersteerSegment>()) }
+  val scalar by trackMapViewModel.currentScalar.collectAsState()
 
   fun normalizePosition(playerPosition: CanvasCoordinate): CanvasCoordinate {
-    val relativeX = (startPosition.x - playerPosition.x)
-    val relativeY = (startPosition.y - playerPosition.y)
+    val relativeX = ((startPositionActual!!.x * scalar) - (playerPosition.x * scalar))
+    val relativeY = ((startPositionActual!!.y * scalar) - (playerPosition.y * scalar))
     return CanvasCoordinate(
       canvasCenter.x + relativeX,
       canvasCenter.y + relativeY
     )
   }
 
-  LaunchedEffect(forzaData) {
-    if (frontAvg.isEmpty()) {
+  LaunchedEffect(canvasCenter, events, scalar) {
+    if(startPositionActual == null) {
       return@LaunchedEffect
     }
-    if (forzaData == null) {
-      return@LaunchedEffect
-    }
-    if (startPosition.y == 0f && startPosition.x == 0f) {
-      startPosition = CanvasCoordinate(
-        forzaData!!.positionX,
-        forzaData!!.positionZ
-      )
-    }
-    if (frontAvg.last().ratio > 0.5) {
-      val playerPosition = CanvasCoordinate(
-        forzaData!!.positionX,
-        forzaData!!.positionZ
-      )
-      val normalizedPosition = normalizePosition(playerPosition)
-      if (segments.value.isEmpty()) {
-        val newSegment = UndersteerSegment(Path(), false)
-        newSegment.path.moveTo(normalizedPosition.x, normalizedPosition.y)
-        segments.value = segments.value.plus(newSegment)
+    var updatedSegments = emptyList<UndersteerSegment>()
+    events.forEach {
+      val newSegment = UndersteerSegment(Path(), false)
+      it.coordinates.forEachIndexed { index, coordinate ->
+        val normalizedCoordinate = normalizePosition(coordinate)
+        if (index == 0) {
+          newSegment.path.moveTo(normalizedCoordinate.x, normalizedCoordinate.y)
+        } else {
+          newSegment.path.lineTo(normalizedCoordinate.x, normalizedCoordinate.y)
+        }
       }
-      if (segments.value.last().isFinished) {
-        val newSegment = UndersteerSegment(Path(), false)
-        newSegment.path.moveTo(normalizedPosition.x, normalizedPosition.y)
-        segments.value = segments.value.plus(newSegment)
-      } else {
-        val lastSegment = segments.value.last()
-        lastSegment.path.lineTo(normalizedPosition.x, normalizedPosition.y)
-        segments.value = segments.value
-          .minus(lastSegment)
-          .plus(lastSegment)
-      }
-    } else if (segments.value.isNotEmpty()) {
-      segments.value.last().isFinished = true
+      newSegment.isFinished = true
+      updatedSegments = updatedSegments.plus(newSegment)
     }
+    segments.value = updatedSegments
   }
 
   Canvas(

@@ -1,6 +1,5 @@
 package com.example.forzautils.ui
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -25,11 +24,11 @@ import com.example.forzautils.ui.pages.replay.ReplayViewer
 import com.example.forzautils.ui.pages.sourceChooser.SourceChooserPage
 import com.example.forzautils.ui.pages.splash.SplashPage
 import com.example.forzautils.utils.Constants
-import com.example.forzautils.viewModels.forzaViewModel.ForzaViewModel
+import com.example.forzautils.viewModels.forza.ForzaViewModel
 import com.example.forzautils.viewModels.networkInfo.ConnectionStates
 import com.example.forzautils.viewModels.networkInfo.NetworkInfoViewModel
-import com.example.forzautils.viewModels.replayViewModel.ReplayViewModel
-import com.example.forzautils.viewModels.themeViewModel.ThemeViewModel
+import com.example.forzautils.viewModels.replay.ReplayViewModel
+import com.example.forzautils.viewModels.theme.ThemeViewModel
 
 @Composable
 fun ForzaApp(

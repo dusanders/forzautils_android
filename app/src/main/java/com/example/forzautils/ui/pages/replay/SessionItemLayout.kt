@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import com.example.forzautils.dataModels.RecordedSession
 import com.example.forzautils.ui.components.TextCardBox
-import com.example.forzautils.viewModels.replayViewModel.ReplayViewModel
+import com.example.forzautils.viewModels.replay.ReplayViewModel
 
 @Composable
 fun SessionItemLayout(

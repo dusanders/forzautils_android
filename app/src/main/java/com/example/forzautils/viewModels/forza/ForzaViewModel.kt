@@ -1,4 +1,4 @@
-package com.example.forzautils.viewModels.forzaViewModel
+package com.example.forzautils.viewModels.forza
 
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel

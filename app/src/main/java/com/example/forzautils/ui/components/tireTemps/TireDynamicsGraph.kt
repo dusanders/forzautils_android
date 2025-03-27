@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -31,7 +30,7 @@ import androidx.compose.ui.unit.dp
 import com.example.forzautils.ui.components.TextCardBox
 import com.example.forzautils.utils.CanvasCoordinate
 import com.example.forzautils.utils.toPrecision
-import com.example.forzautils.viewModels.tireViewModel.TireDynamicsEvent
+import com.example.forzautils.viewModels.tire.TireDynamicsEvent
 
 @Composable
 fun TireDynamicsGraph(

@@ -6,14 +6,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.LightMode
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.example.forzautils.ui.components.ThemeSwitch
-import com.example.forzautils.viewModels.themeViewModel.ThemeViewModel
+import com.example.forzautils.viewModels.theme.ThemeViewModel
 
 @Composable
 fun LightModeSwitch(

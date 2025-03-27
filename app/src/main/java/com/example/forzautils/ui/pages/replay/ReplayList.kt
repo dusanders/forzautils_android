@@ -15,7 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.example.forzautils.viewModels.replayViewModel.ReplayViewModel
+import com.example.forzautils.viewModels.replay.ReplayViewModel
 
 @Composable
 fun ReplayList(

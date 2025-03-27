@@ -11,10 +11,12 @@ import androidx.compose.ui.res.stringResource
 import com.example.forzautils.R
 import com.example.forzautils.ui.ForzaAppBarActions
 import com.example.forzautils.ui.components.engineInfo.EngineInfo
-import com.example.forzautils.ui.components.tireTemps.TireTemps
+import com.example.forzautils.ui.components.tireTemps.TireDynamics
+import com.example.forzautils.ui.components.trackMap.TrackMap
 import com.example.forzautils.viewModels.engineInfo.EngineInfoViewModel
-import com.example.forzautils.viewModels.tireViewModel.TireViewModel
-import com.example.forzautils.viewModels.forzaViewModel.ForzaViewModel
+import com.example.forzautils.viewModels.tire.TireViewModel
+import com.example.forzautils.viewModels.forza.ForzaViewModel
+import com.example.forzautils.viewModels.trackMap.TrackMapViewModel
 
 @Composable
 fun LiveViewer(
@@ -24,6 +26,7 @@ fun LiveViewer(
   val tag = "LiveViewer"
   val recording by forzaViewModel.recording.collectAsState()
   val engineViewModel = EngineInfoViewModel(forzaViewModel)
+  val trackMapViewModel = TrackMapViewModel(forzaViewModel)
 
   DisposableEffect(Unit) {
     appBarActions.setTitleElement {
@@ -56,10 +59,13 @@ fun LiveViewer(
   LazyColumn(
     content = {
       item {
+        TrackMap(trackMapViewModel)
+      }
+      item {
         EngineInfo(engineViewModel)
       }
       item {
-        TireTemps(
+        TireDynamics(
           TireViewModel(forzaViewModel)
         )
       }

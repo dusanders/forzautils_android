@@ -28,7 +28,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.forzautils.R
 import com.example.forzautils.ui.components.appBarFlyout.AppBarFlyout
-import com.example.forzautils.viewModels.themeViewModel.ThemeViewModel
+import com.example.forzautils.viewModels.theme.ThemeViewModel
 
 interface ForzaAppBarActions {
   fun setShowBackButton(show: Boolean)

@@ -14,7 +14,7 @@ import androidx.navigation.NavController
 import com.example.forzautils.R
 import com.example.forzautils.ui.components.PageHeading
 import com.example.forzautils.utils.Constants
-import com.example.forzautils.viewModels.forzaViewModel.ForzaViewModel
+import com.example.forzautils.viewModels.forza.ForzaViewModel
 import com.example.forzautils.viewModels.networkInfo.NetworkInfoViewModel
 
 @Composable

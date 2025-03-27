@@ -1,6 +1,5 @@
-package com.example.forzautils.viewModels.replayViewModel
+package com.example.forzautils.viewModels.replay
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.forzautils.dataModels.RecordedSession
