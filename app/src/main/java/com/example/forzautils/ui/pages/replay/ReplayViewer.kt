@@ -16,20 +16,21 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.forzautils.ui.ForzaAppBarActions
 import com.example.forzautils.ui.components.engineInfo.EngineInfo
-import com.example.forzautils.ui.components.tireTemps.TireTemps
+import com.example.forzautils.ui.components.tireTemps.TireDynamics
 import com.example.forzautils.ui.components.trackMap.TrackMap
 import com.example.forzautils.viewModels.engineInfo.EngineInfoViewModel
-import com.example.forzautils.viewModels.tireViewModel.TireViewModel
-import com.example.forzautils.viewModels.replayViewModel.ReplayViewModel
+import com.example.forzautils.viewModels.tire.TireViewModel
+import com.example.forzautils.viewModels.replay.ReplayViewModel
+import com.example.forzautils.viewModels.trackMap.TrackMapViewModel
 
 @Composable
 fun ReplayViewer(
@@ -42,6 +43,7 @@ fun ReplayViewer(
   val currentSegment by replayViewModel.packetReadCount.collectAsState()
   val engineViewModel = EngineInfoViewModel(replayViewModel)
   val tireViewModel = TireViewModel(replayViewModel)
+  val trackMapViewModel = TrackMapViewModel(replayViewModel)
   val scrollState = rememberLazyListState()
   val flingBehavior = rememberSnapFlingBehavior(scrollState)
 
@@ -103,11 +105,16 @@ fun ReplayViewer(
         .padding(innerPadding)
         .fillMaxSize(),
       flingBehavior = flingBehavior,
+      horizontalAlignment = Alignment.CenterHorizontally,
       content = {
         item {
-          TrackMap(replayViewModel)
+          TrackMap(trackMapViewModel)
+        }
+        item {
           EngineInfo(engineViewModel)
-          TireTemps(tireViewModel)
+        }
+        item {
+          TireDynamics(tireViewModel)
         }
       }
     )
