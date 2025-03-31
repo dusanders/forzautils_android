@@ -3,6 +3,7 @@ package com.example.forzautils.ui.components.trackMap
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -27,33 +28,32 @@ fun TrackCanvas(
   trackMapViewModel: TrackMapViewModel
 ) {
   val tag = "TrackCanvas"
-  var canvasCenter by remember { mutableStateOf<CanvasCoordinate?>(null) }
-  val currentScalar = remember { mutableFloatStateOf(1f) }
+  var drawPath by remember { mutableStateOf(Path()) }
   val path = trackMapViewModel.trackPath.collectAsState()
   val primaryColor = MaterialTheme.colorScheme.primary
+  val currentPosition = trackMapViewModel.currentPosition.collectAsState()
+
+  LaunchedEffect(path.value) {
+    drawPath = path.value
+  }
 
   Box(
     modifier = Modifier
       .fillMaxSize()
+      .padding(20.dp)
   ) {
     Canvas(
       modifier = Modifier
         .fillMaxSize()
         .onPlaced { coords ->
-          val height = coords.size.height
-          val width = coords.size.width
-          canvasCenter = CanvasCoordinate(
-            x = (width / 2).toFloat(),
-            y = (height / 2).toFloat()
-          )
-          trackMapViewModel.redrawWithCenterAndScalar(
-            canvasCenter!!,
-            currentScalar.floatValue
+          trackMapViewModel.setCanvasLayout(
+            coords.size.width.toFloat(),
+            coords.size.height.toFloat()
           )
         },
     ) {
       drawPath(
-        path.value,
+        drawPath,
         color = primaryColor,
         style = Stroke(
           width = 3.dp.toPx(),
@@ -61,18 +61,20 @@ fun TrackCanvas(
           cap = Stroke.DefaultCap
         )
       )
-      drawCircle(
-        color = primaryColor,
-        radius = 5.dp.toPx(),
-        center = Offset(
-          trackMapViewModel.currentPosition.value.x,
-          trackMapViewModel.currentPosition.value.y
+      if (currentPosition.value != null) {
+        drawCircle(
+          color = primaryColor,
+          radius = 5.dp.toPx(),
+          center = Offset(
+            currentPosition.value!!.x,
+            currentPosition.value!!.y
+          )
         )
-      )
+      }
     }
-    UndersteerCanvas(
-      trackMapViewModel,
-      trackMapViewModel.absoluteStartPosition,
-    )
+//    UndersteerCanvas(
+//      trackMapViewModel,
+//      trackMapViewModel,
+//    )
   }
 }

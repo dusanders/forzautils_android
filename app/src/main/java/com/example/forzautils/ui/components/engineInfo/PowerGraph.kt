@@ -1,6 +1,5 @@
 package com.example.forzautils.ui.components.engineInfo
 
-import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -23,17 +22,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.TextLayoutResult
-import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
@@ -41,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import com.example.forzautils.R
 import com.example.forzautils.ui.theme.FontSizes
 import com.example.forzautils.utils.CanvasCoordinate
+import kotlin.math.roundToInt
 
 data class PowerAtRpm(
   val rpm: Int,
@@ -100,6 +97,10 @@ fun PowerGraph(
     return yLabelYBase - scaled
   }
 
+  fun roundRpmToStep(rpm: Int): Int {
+    return (rpm * 0.01f).roundToInt() * 100
+  }
+
   fun calculatePaths() {
     val newHpPath = Path()
     val newTqPath = Path()
@@ -116,11 +117,11 @@ fun PowerGraph(
         )
       } else {
         newHpPath.lineTo(
-          xNormalizer * index,
+          yLabelMeasure + (xNormalizer * index),
           findYPosition(powerAtRpm.horsepower, minMax)
         )
         newTqPath.lineTo(
-          xNormalizer * index,
+          yLabelMeasure + (xNormalizer * index),
           findYPosition(powerAtRpm.torque, minMax)
         )
       }
@@ -228,7 +229,7 @@ fun PowerGraph(
 
         for (i in 0..5) {
           val value = minRpm + (step * i)
-          val label = value.toString()
+          val label = roundRpmToStep(value).toString()
           val labelMeasure = measureText(label)
           val xStep = layoutWidth / 4
           val xPos = if(i == 0) 0f else (xStep * i) - (labelMeasure.size.width / 2)

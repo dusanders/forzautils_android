@@ -33,7 +33,9 @@ class ForzaViewModel(
   }
 
   private val forzaData: Observer<TelemetryData?> = Observer {
-    forzaRecorder.writePacket(it)
+//    if(it != null && it.isRaceOn){
+      forzaRecorder.writePacket(it)
+//    }
     viewModelScope.launch {
       _data.emit(it)
     }

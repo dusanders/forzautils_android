@@ -25,11 +25,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.forzautils.ui.ForzaAppBarActions
 import com.example.forzautils.ui.components.engineInfo.EngineInfo
+import com.example.forzautils.ui.components.suspension.Suspension
 import com.example.forzautils.ui.components.tireTemps.TireDynamics
 import com.example.forzautils.ui.components.trackMap.TrackMap
 import com.example.forzautils.viewModels.engineInfo.EngineInfoViewModel
 import com.example.forzautils.viewModels.tire.TireViewModel
 import com.example.forzautils.viewModels.replay.ReplayViewModel
+import com.example.forzautils.viewModels.suspension.SuspensionViewModel
 import com.example.forzautils.viewModels.trackMap.TrackMapViewModel
 
 @Composable
@@ -41,9 +43,6 @@ fun ReplayViewer(
   var totalSegments by remember { mutableIntStateOf(0) }
   val currentSession by replayViewModel.currentSession.collectAsState()
   val currentSegment by replayViewModel.packetReadCount.collectAsState()
-  val engineViewModel = EngineInfoViewModel(replayViewModel)
-  val tireViewModel = TireViewModel(replayViewModel)
-  val trackMapViewModel = TrackMapViewModel(replayViewModel)
   val scrollState = rememberLazyListState()
   val flingBehavior = rememberSnapFlingBehavior(scrollState)
 
@@ -63,6 +62,7 @@ fun ReplayViewer(
       Text(text = currentSession?.sessionInfo?.trackModel?.getTrack() ?: "Replay Viewer")
     }
     onDispose {
+      replayViewModel.stopReplay()
       appBarActions.removeTitleElement()
     }
   }
@@ -108,13 +108,16 @@ fun ReplayViewer(
       horizontalAlignment = Alignment.CenterHorizontally,
       content = {
         item {
-          TrackMap(trackMapViewModel)
+          TrackMap(replayViewModel.trackMapViewModel)
         }
         item {
-          EngineInfo(engineViewModel)
+          EngineInfo(replayViewModel.engineInfoViewModel)
         }
         item {
-          TireDynamics(tireViewModel)
+          TireDynamics(replayViewModel.tireViewModel)
+        }
+        item {
+          Suspension(replayViewModel.suspensionViewModel)
         }
       }
     )

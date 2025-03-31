@@ -1,7 +1,9 @@
 package com.example.forzautils.viewModels.trackMap
 
+import android.util.Log
 import androidx.compose.ui.graphics.Path
 import androidx.lifecycle.ViewModel
+import com.example.forzautils.ui.components.trackMap.ScaledMap
 import com.example.forzautils.utils.CanvasCoordinate
 import com.example.forzautils.utils.DataWindow
 import com.example.forzautils.viewModels.interfaces.IForzaDataStream
@@ -21,13 +23,14 @@ class TrackMapViewModel(
 ) : ViewModel() {
   private val tag = "TrackMapViewModel"
   private val understeerWindowSize = 200
-  private val trackWindowSize = 5000
-  private var isUndeersteering = false
-  private var lastCanvasCenter: CanvasCoordinate = CanvasCoordinate(0f, 0f)
+  private var isUndersteering = false
+  private var canvasHeight = 0f
+  private var canvasWidth = 0f
+  private var trackId: Int = -1
+  private var scaledMap: ScaledMap? = null
+  private var currentLap = -1
 
-  val trackWindow = DataWindow<CanvasCoordinate>(trackWindowSize)
   val understeerWindow = DataWindow<UndersteerEvent>(understeerWindowSize)
-  var absoluteStartPosition: CanvasCoordinate? = null
 
   private val _trackPath = MutableStateFlow(Path())
   val trackPath: StateFlow<Path> = _trackPath
@@ -35,13 +38,14 @@ class TrackMapViewModel(
   private val _trackTitle = MutableStateFlow("")
   val trackTitle: StateFlow<String> = _trackTitle
 
-  private val _currentPosition = MutableStateFlow(CanvasCoordinate(0f, 0f))
-  val currentPosition: StateFlow<CanvasCoordinate> = _currentPosition
+  private val _currentPosition = MutableStateFlow<CanvasCoordinate?>(null)
+  val currentPosition: StateFlow<CanvasCoordinate?> = _currentPosition
 
   private val _currentScalar = MutableStateFlow(1f)
   val currentScalar: StateFlow<Float> = _currentScalar
 
   init {
+    Log.d(tag, "Initializing TrackMapViewModel")
     CoroutineScope(Dispatchers.Default).launch {
       forzaViewModel.data.collect { data ->
         processData(data)
@@ -49,74 +53,39 @@ class TrackMapViewModel(
     }
   }
 
-  fun redrawWithCenterAndScalar(canvasCenter: CanvasCoordinate, scalar: Float) {
-    val newPath = Path()
-    _currentScalar.value = scalar
-    lastCanvasCenter = canvasCenter
-    trackWindow.window.value.forEachIndexed { index, position ->
-      if (index == 0) {
-        newPath.moveTo(canvasCenter.x, canvasCenter.y)
-      } else {
-        val newPosition = normalizeToCanvas(position, canvasCenter, scalar)
-        if (newPosition.y < 0) {
-          return redrawWithCenterAndScalar(canvasCenter, scalar - 0.1f)
-        }
-        if (newPosition.x < 0) {
-          return redrawWithCenterAndScalar(canvasCenter, scalar - 0.1f)
-        }
-        newPath.lineTo(newPosition.x, newPosition.y)
-      }
+  fun setCanvasLayout(width: Float, height: Float) {
+    if (canvasWidth != width && canvasHeight != height) {
+      canvasWidth = width
+      canvasHeight = height
+      scaledMap = ScaledMap(width, height)
     }
-    _trackPath.value = newPath
-    if (trackWindow.window.value.isNotEmpty()) {
-      _currentPosition.value = normalizeToCanvas(
-        trackWindow.window.value.last(),
-        canvasCenter,
-        scalar
-      )
-    }
-  }
-
-  private fun normalizeToCanvas(
-    position: CanvasCoordinate,
-    center: CanvasCoordinate,
-    scalar: Float
-  ): CanvasCoordinate {
-    if (absoluteStartPosition == null) {
-      return CanvasCoordinate(0f, 0f)
-    }
-    val relativeX = ((absoluteStartPosition!!.x * scalar) - (position.x * scalar))
-    val relativeY = ((absoluteStartPosition!!.y * scalar) - (position.y * scalar))
-    return CanvasCoordinate(
-      center.x + relativeX,
-      center.y + relativeY
-    )
   }
 
   private fun processData(data: TelemetryData?) {
     if (data == null) {
       return
     }
-    if (_trackTitle.value.isEmpty()) {
+    if (!data.isRaceOn) {
+      return
+    }
+    if (scaledMap == null) {
+      return
+    }
+    if (data.trackID != trackId) {
       parseTrackTitle(data)
+      trackId = data.trackID
+      _trackPath.value = Path()
+    }
+    if (currentLap < 0) {
+      currentLap = data.currentLap.toInt()
     }
     checkUndersteering(data)
-    updateCurrentPosition(data)
-    appendTrackPosition(data)
-    redrawWithCenterAndScalar(lastCanvasCenter, _currentScalar.value)
-  }
-
-  private fun appendTrackPosition(data: TelemetryData) {
-    trackWindow.add(
-      CanvasCoordinate(data.positionX, data.positionZ)
+    scaledMap!!.addPoint(
+      CanvasCoordinate(data.positionX, data.positionZ),
+      data.currentLap.toInt() != currentLap
     )
-  }
-
-  private fun updateCurrentPosition(data: TelemetryData) {
-    if (absoluteStartPosition == null) {
-      absoluteStartPosition = CanvasCoordinate(data.positionX, data.positionZ)
-    }
-    _currentPosition.value = CanvasCoordinate(data.positionX, data.positionZ)
+    _trackPath.value = scaledMap!!.getPath()
+    _currentPosition.value = scaledMap!!.getCurrentPosition()
   }
 
   private fun parseTrackTitle(data: TelemetryData) {
@@ -125,20 +94,20 @@ class TrackMapViewModel(
   }
 
   private fun checkUndersteering(data: TelemetryData) {
-    val avgFrontSlip = (data!!.tireSlipRatioFrontLeft + data.tireSlipRatioFrontRight) / 2
+    val avgFrontSlip = (data.tireSlipRatioFrontLeft + data.tireSlipRatioFrontRight) / 2
     if (avgFrontSlip >= 0.5) {
-      if (!isUndeersteering) {
+      if (!isUndersteering) {
         addUndersteerEvent(data)
       } else {
         appendUndersteerEvent(data)
       }
     } else {
-      isUndeersteering = false;
+      isUndersteering = false;
     }
   }
 
   private fun addUndersteerEvent(data: TelemetryData) {
-    isUndeersteering = true;
+    isUndersteering = true;
     val newUndersteerEvent = UndersteerEvent(
       coordinates = listOf(
         CanvasCoordinate(data.positionX, data.positionZ)

@@ -11,6 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 
 val debugGearMap = mapOf(
   1 to mapOf(
@@ -186,7 +187,7 @@ class EngineInfoViewModel(
   }
 
   private fun updateGearMap(engineModel: EngineModel): Map<Int, Map<Int, EngineModel>> {
-    val rpm = engineModel.getRoundedRpm()
+    val rpm = convertRpmToStep(engineModel.currentRpm)
     if (engineModel.gear == 0 || engineModel.gear == 11) {
       return _powerMap.value
     }
@@ -221,4 +222,7 @@ class EngineInfoViewModel(
       .plus(engineModel.gear to foundGearMap.toSortedMap())
   }
 
+  private fun convertRpmToStep(rpm: Float): Int {
+    return (rpm * 0.01f).roundToInt() * 100
+  }
 }

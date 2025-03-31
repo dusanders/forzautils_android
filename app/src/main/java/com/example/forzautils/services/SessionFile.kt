@@ -62,13 +62,14 @@ class SessionFile(
     }
   }
 
-  suspend fun readPacket(offset: Int? = null): TelemetryData? = suspendCoroutine { continuation ->
-    continuation.resumeWith(
-      Result.success(
-        readAndParseData(offset)
+  suspend fun readPacket(skipPause: Boolean = false, offset: Int? = null): TelemetryData? =
+    suspendCoroutine { continuation ->
+      continuation.resumeWith(
+        Result.success(
+          readAndParseData(skipPause, offset)
+        )
       )
-    )
-  }
+    }
 
   fun writePacket(data: TelemetryData?) {
     if (data == null) {
@@ -104,6 +105,7 @@ class SessionFile(
   fun close(): RecordedSession {
     writeChannel.close()
     fileWriteThread?.cancel(CancellationException("User Stopped Recording"))
+    readPacketCount = 0
     return recordedSession.copy(totalLen = totalPackets)
   }
 
@@ -130,29 +132,34 @@ class SessionFile(
     }
   }
 
-  private fun readAndParseData(offset: Int? = null): TelemetryData? {
-    val offsetPacket = offset ?: readPacketCount
-    val buf = ByteBuffer.allocate(recordedSession.byteLen)
-    val buffreader = RandomAccessFile(file, "r")
-    buffreader.seek(
-      offsetPacket * recordedSession.byteLen.toLong()
-    )
-    val readLen = buffreader.read(
-      buf.array(),
-      0,
-      recordedSession.byteLen
-    )
-    buffreader.close()
-    // Update read packet count
-    readPacketCount = offsetPacket + 1
-    // EOF or incomplete packet - return null
-    if (readLen != recordedSession.byteLen) {
-      return null
-    }
-    return TelemetryParser.Parse(
-      buf.array().size,
-      buf.array(),
-      FM8DatabaseService(context)
-    )
+  private fun readAndParseData(skipPause: Boolean, offset: Int? = null): TelemetryData? {
+    var packet: TelemetryData?
+    var offsetPacket = offset ?: readPacketCount
+    do {
+      val buf = ByteBuffer.allocate(recordedSession.byteLen)
+      val buffreader = RandomAccessFile(file, "r")
+      buffreader.seek(
+        offsetPacket * recordedSession.byteLen.toLong()
+      )
+      val readLen = buffreader.read(
+        buf.array(),
+        0,
+        recordedSession.byteLen
+      )
+      buffreader.close()
+      // Update read packet count
+      readPacketCount = offsetPacket + 1
+      offsetPacket = readPacketCount
+      // EOF or incomplete packet - return null
+      if (readLen != recordedSession.byteLen) {
+        return null
+      }
+      packet = TelemetryParser.Parse(
+        buf.array().size,
+        buf.array(),
+        FM8DatabaseService(context)
+      )
+    } while (!packet!!.isRaceOn && skipPause)
+    return packet
   }
 }

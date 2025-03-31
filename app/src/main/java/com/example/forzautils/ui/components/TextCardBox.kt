@@ -30,7 +30,7 @@ fun LabelText(text: String) {
     text = text.toUpperCase(Locale.current),
     color = MaterialTheme.colorScheme.onPrimary,
     fontSize = FontSizes.sm,
-    textAlign = TextAlign.Center
+    textAlign = TextAlign.Center,
   )
 }
 

@@ -100,7 +100,7 @@ fun TireDynamicsGraph(
     Canvas(
       modifier = Modifier
         .fillMaxWidth()
-        .height(200.dp)
+        .height(150.dp)
         .background(MaterialTheme.colorScheme.surface)
         .onPlaced { coords ->
           layoutHeight = coords.size.height.toFloat()
