@@ -46,6 +46,20 @@ fun TireDynamicsGraph(
   var layoutWidth by remember { mutableFloatStateOf(0f) }
   var centerCoordinate by remember { mutableStateOf(CanvasCoordinate(0f, 0f)) }
 
+  fun normalizeSteeringAngle(angle: Float): Float {
+    return ((127 - angle) / 254f) * layoutHeight
+  }
+
+  fun normalizeSlipRatio(ratio: Float): Float {
+    val normalized = (ratio * ratioScalar)
+    if (normalized > layoutHeight) {
+      return layoutHeight
+    } else if (normalized < 0) {
+      return 0f
+    }
+    return normalized
+  }
+
   LaunchedEffect(layoutWidth, listSize) {
     val xMovements = (layoutWidth / listSize)
     Log.d(tag, "xMovements: $layoutWidth / ${listSize} = $xMovements")
@@ -74,7 +88,7 @@ fun TireDynamicsGraph(
       val xMove = index.toFloat() * xNormalizer
       steerPath.lineTo(
         xMove,
-        steerYBaseline - event.steeringAngle
+        normalizeSteeringAngle(event.steeringAngle)
       )
       tempPath.lineTo(
         xMove,
@@ -86,7 +100,7 @@ fun TireDynamicsGraph(
       )
       ratioPath.lineTo(
         xMove,
-        ratioYBaseline - (event.ratio * ratioScalar)
+        ratioYBaseline - normalizeSlipRatio(event.ratio)
       )
     }
   }
