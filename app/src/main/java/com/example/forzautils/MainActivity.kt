@@ -23,6 +23,7 @@ import com.example.forzautils.viewModels.replay.ReplayViewModel
 import com.example.forzautils.viewModels.replay.ReplayViewModelFactory
 import com.example.forzautils.viewModels.theme.ThemeViewModel
 import com.example.forzautils.viewModels.theme.ThemeViewModelFactory
+import com.example.forzautils.viewModels.tuningViewModel.TuningViewModel
 import java.net.SocketException
 
 class MainActivity : ComponentActivity() {
@@ -32,6 +33,7 @@ class MainActivity : ComponentActivity() {
   private lateinit var wiFiService: WiFiService
   private lateinit var forzaService: ForzaService
   private lateinit var forzaRecorder: ForzaRecorder
+  private val tuningViewModel by viewModels<TuningViewModel>()
   private val themeViewModel by viewModels<ThemeViewModel> {
     ThemeViewModelFactory(false)
   }
@@ -70,7 +72,8 @@ class MainActivity : ComponentActivity() {
           themeViewModel,
           networkInfoViewModel,
           forzaViewModel,
-          replayViewModel
+          replayViewModel,
+          tuningViewModel
         )
       }
     }

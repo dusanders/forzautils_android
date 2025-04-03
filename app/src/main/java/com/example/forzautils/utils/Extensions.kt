@@ -29,6 +29,9 @@ fun <T> LiveData<T>.observeUntil(
 }
 
 fun Float.toPrecision(precision: Int): Float {
+  if(this.isNaN() || this.isInfinite()) {
+    return 0f
+  }
   val bigDecimalValue = java.math.BigDecimal(toDouble()).setScale(precision, java.math.RoundingMode.HALF_UP)
   return bigDecimalValue.toFloat()
 }

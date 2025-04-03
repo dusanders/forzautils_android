@@ -37,10 +37,18 @@
     <string name="landingPage_forwardDataHeading">Forward Telemetry Data</string>
     <string name="landingPage_forwardDataDesc">Setup Forza\'s Telemetry output to go to the below IP and Port. PLEASE USE DASH FORMAT!</string>
     <string name="landingPage_simHub_note">If using SimHub, please instruct SimHub to forward telemetry data to the below Ip and Port!</string>
+    <string name="tuningPage_weightInputHint">Weight</string>
+    <string name="tuningPage_weightDistributionInputHint_front">Front Distribution</string>
+    <string name="tuningPage_weightDistributionInputHint_rear">Rear Distribution</string>
+    <string name="tuningPage_weightInputDesc">Enter Total Vehicle Weight</string>
+    <string name="tuningPage_frontWeightDistributionDesc">Enter Front Weight Distribution</string>
+    <string name="tuningPage_rearWeightDistributionDesc">Enter Rear Weight Distribution</string>
     <string name="sourcePage_heading">Choose Source</string>
     <string name="sourcePage_desc">Select a source to view data from. The app currently only supports viewing recorded data or live Forza telemetry.</string>
     <string name="sourcePage_liveBtn">Live Data</string>
     <string name="sourcePage_replayBtn">Replay or Demo</string>
     <string name="sourcePage_liveDesc">Live Telemetry</string>
     <string name="sourcePage_replayDesc">Replay or Demo</string>
+    <string name="sourcePage_tuningBtn">Tuning</string>
+    <string name="sourcePage_tuningDesc">Tuning Calculations</string>
 </resources>

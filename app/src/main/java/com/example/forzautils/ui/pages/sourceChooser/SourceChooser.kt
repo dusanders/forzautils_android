@@ -14,7 +14,8 @@ import com.example.forzautils.ui.components.TextCardBox
 @Composable
 fun SourceChooserPage(
   navigateToLiveViewer: () -> Unit,
-  navigateToReplayViewer: () -> Unit
+  navigateToReplayViewer: () -> Unit,
+  navigateToTuning: () -> Unit
 ) {
   Column {
     PageHeading(
@@ -36,6 +37,16 @@ fun SourceChooserPage(
           value = stringResource(R.string.sourcePage_liveBtn),
           label = stringResource(R.string.sourcePage_liveDesc),
           onClicked = navigateToLiveViewer
+        )
+      }
+    }
+    Row {
+      Box(modifier = Modifier.weight(1f)){
+        TextCardBox(
+          height = 75.dp,
+          value = stringResource(R.string.sourcePage_tuningBtn),
+          label = stringResource(R.string.sourcePage_tuningDesc),
+          onClicked = navigateToTuning
         )
       }
     }

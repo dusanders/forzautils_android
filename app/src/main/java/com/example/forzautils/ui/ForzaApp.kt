@@ -23,19 +23,22 @@ import com.example.forzautils.ui.pages.replay.ReplayList
 import com.example.forzautils.ui.pages.replay.ReplayViewer
 import com.example.forzautils.ui.pages.sourceChooser.SourceChooserPage
 import com.example.forzautils.ui.pages.splash.SplashPage
+import com.example.forzautils.ui.pages.tune.Tuning
 import com.example.forzautils.utils.Constants
 import com.example.forzautils.viewModels.forza.ForzaViewModel
 import com.example.forzautils.viewModels.networkInfo.ConnectionStates
 import com.example.forzautils.viewModels.networkInfo.NetworkInfoViewModel
 import com.example.forzautils.viewModels.replay.ReplayViewModel
 import com.example.forzautils.viewModels.theme.ThemeViewModel
+import com.example.forzautils.viewModels.tuningViewModel.TuningViewModel
 
 @Composable
 fun ForzaApp(
   themeViewModel: ThemeViewModel,
   networkInfoViewModel: NetworkInfoViewModel,
   forzaViewModel: ForzaViewModel,
-  replayViewModel: ReplayViewModel
+  replayViewModel: ReplayViewModel,
+  tuningViewModel: TuningViewModel
 ) {
   val tag = "ForzaApp"
 
@@ -89,6 +92,9 @@ fun ForzaApp(
                 },
                 navigateToLiveViewer = {
                   navController.navigate(Constants.Pages.LIVE_VIEWER)
+                },
+                navigateToTuning = {
+                  navController.navigate(Constants.Pages.TUNING)
                 }
               )
             }
@@ -107,6 +113,12 @@ fun ForzaApp(
               ReplayViewer(
                 replayViewModel,
                 actions
+              )
+            }
+            composable(Constants.Pages.TUNING) {
+              Tuning(
+                actions,
+                tuningViewModel
               )
             }
           }

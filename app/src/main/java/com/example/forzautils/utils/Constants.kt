@@ -15,6 +15,7 @@ class Constants {
             val NETWORK_ERROR = "networkError"
             val REPLAY_VIEWER = "replayViewer"
             val REPLAY_LIST = "replayList"
+            val TUNING = "tuning"
         }
     }
 }

@@ -5,9 +5,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.intl.Locale
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.toUpperCase
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.forzautils.ui.theme.FontSizes
@@ -19,16 +16,6 @@ fun ValueText(text: String, color: Color? = null) {
     color = color ?: MaterialTheme.colorScheme.primary,
     fontSize = FontSizes.md,
     fontWeight = FontWeight.Bold
-  )
-}
-
-@Composable
-fun LabelText(text: String) {
-  Text(
-    text = text.toUpperCase(Locale.current),
-    color = MaterialTheme.colorScheme.onPrimary,
-    fontSize = FontSizes.sm,
-    textAlign = TextAlign.Center,
   )
 }
 
