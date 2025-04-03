@@ -1,8 +1,8 @@
 package com.example.forzautils.ui.pages.tune
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -10,16 +10,17 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import com.example.forzautils.R
 import com.example.forzautils.ui.ForzaAppBarActions
 import com.example.forzautils.ui.components.TextCardBox
 import com.example.forzautils.ui.components.TextInput
+import com.example.forzautils.utils.toPrecision
 import com.example.forzautils.viewModels.tuningViewModel.TuningViewModel
 
 @Composable
@@ -40,6 +41,9 @@ fun Tuning(
   var rearDistroInput by remember { mutableStateOf("") }
   var frontRideHeightInput by remember { mutableStateOf("") }
   var rearRideHeightInput by remember { mutableStateOf("") }
+  var hasRollCage by remember { mutableStateOf(false) }
+  var drivetrain by remember { mutableStateOf(tuningViewModel.drivetrainTypes[0]) }
+  var engineLayout by remember { mutableStateOf(tuningViewModel.engineLayouts[0]) }
   val frontDistribution by tuningViewModel.frontDistribution.collectAsState()
   val rearDistribution by tuningViewModel.rearDistribution.collectAsState()
   val frontHeight by tuningViewModel.frontRideHeight.collectAsState()
@@ -73,7 +77,15 @@ fun Tuning(
   LaunchedEffect(totalWeight) {
     weightInput = totalWeight.toString()
   }
-
+  LaunchedEffect(hasRollCage) {
+    tuningViewModel.setRollCage(hasRollCage)
+  }
+  LaunchedEffect(drivetrain) {
+    tuningViewModel.setDrivetrain(drivetrain)
+  }
+  LaunchedEffect(engineLayout) {
+    tuningViewModel.setEngineLayout(engineLayout)
+  }
   DisposableEffect(appBarActions) {
     appBarActions.setTitleElement {
       Text(text = "Tuning")
@@ -83,13 +95,19 @@ fun Tuning(
     }
   }
 
+  fun setInputValues() {
+    tuningViewModel.setFrontRideHeight(frontRideHeightInput)
+    tuningViewModel.setRearRideHeight(rearRideHeightInput)
+    tuningViewModel.setTotalWeight(weightInput)
+  }
+
   LazyColumn() {
     item {
-      Row() {
+      Row(modifier = Modifier.height(100.dp)) {
         Box(modifier = Modifier.weight(1f)) {
           TextInput(
             onDonePressed = {
-              tuningViewModel.setTotalWeight(weightInput)
+              setInputValues()
             },
             hint = weightInputHint,
             value = weightInput,
@@ -99,6 +117,37 @@ fun Tuning(
             desc = weightInputDesc
           )
         }
+        Box(modifier = Modifier.weight(1f)) {
+          CardSwitch(
+            title = "Roll Cage",
+            checked = hasRollCage,
+            onCheckedChange = { hasRollCage = it }
+          )
+        }
+      }
+    }
+    item {
+      Row() {
+        Box(modifier = Modifier.weight(1f)) {
+          CardDropdown(
+            label = "Drivetrain",
+            options = tuningViewModel.drivetrainTypes,
+            selectedOption = drivetrain,
+            onOptionSelected = {
+              drivetrain = it
+            }
+          )
+        }
+        Box(modifier = Modifier.weight(1f)) {
+          CardDropdown(
+            label = "Engine Layout",
+            options = tuningViewModel.engineLayouts,
+            selectedOption = engineLayout,
+            onOptionSelected = {
+              engineLayout = it
+            }
+          )
+        }
       }
     }
     item {
@@ -106,12 +155,16 @@ fun Tuning(
         Box(modifier = Modifier.weight(1f)) {
           TextInput(
             onDonePressed = {
-              tuningViewModel.setFrontDistribution(frontDistroInput)
+              setInputValues()
             },
             hint = weightDistributionInputHintFront,
             value = frontDistroInput,
             onValueChange = {
               frontDistroInput = it
+              val updated = it.toFloatOrNull()
+              if(updated != null) {
+                tuningViewModel.setFrontDistribution(it)
+              }
             },
             desc = frontWeightDistributionDesc
           )
@@ -119,12 +172,16 @@ fun Tuning(
         Box(modifier = Modifier.weight(1f)) {
           TextInput(
             onDonePressed = {
-              tuningViewModel.setRearDistribution(rearDistroInput)
+              setInputValues()
             },
             hint = weightDistributionInputHintRear,
             value = rearDistroInput,
             onValueChange = {
               rearDistroInput = it
+              val updated = it.toFloatOrNull()
+              if(updated != null) {
+                tuningViewModel.setRearDistribution(it)
+              }
             },
             desc = rearWeightDistributionDesc
           )
@@ -136,7 +193,7 @@ fun Tuning(
         Box(modifier = Modifier.weight(1f)) {
           TextInput(
             onDonePressed = {
-              tuningViewModel.setFrontRideHeight(frontRideHeightInput)
+              setInputValues()
             },
             hint = "Ride Height",
             value = frontRideHeightInput,
@@ -149,7 +206,7 @@ fun Tuning(
         Box(modifier = Modifier.weight(1f)) {
           TextInput(
             onDonePressed = {
-              tuningViewModel.setRearRideHeight(rearRideHeightInput)
+              setInputValues()
             },
             hint = "Ride Height",
             value = rearRideHeightInput,
@@ -166,19 +223,19 @@ fun Tuning(
         Box(modifier = Modifier.weight(1f)) {
           TextCardBox(
             label = "Left Front",
-            value = frontCornerWeight.toString()
+            value = frontCornerWeight.toPrecision(2).toString()
           )
         }
         Box(modifier = Modifier.weight(1f)) {
           TextCardBox(
             label = "Total Front",
-            value = frontWeight.toString()
+            value = frontWeight.toPrecision(2).toString()
           )
         }
         Box(modifier = Modifier.weight(1f)) {
           TextCardBox(
             label = "Right Front",
-            value = frontCornerWeight.toString()
+            value = frontCornerWeight.toPrecision(2).toString()
           )
         }
       }
@@ -188,19 +245,19 @@ fun Tuning(
         Box(modifier = Modifier.weight(1f)) {
           TextCardBox(
             label = "Left Rear",
-            value = rearCornerWeight.toString()
+            value = rearCornerWeight.toPrecision(2).toString()
           )
         }
         Box(modifier = Modifier.weight(1f)) {
           TextCardBox(
             label = "Total Rear",
-            value = rearWeight.toString()
+            value = rearWeight.toPrecision(2).toString()
           )
         }
         Box(modifier = Modifier.weight(1f)) {
           TextCardBox(
             label = "Right Rear",
-            value = rearCornerWeight.toString()
+            value = rearCornerWeight.toPrecision(2).toString()
           )
         }
       }
@@ -210,13 +267,13 @@ fun Tuning(
         Box(modifier = Modifier.weight(1f)) {
           TextCardBox(
             label = "Front Spring Rate",
-            value = frontSpringRate.toString()
+            value = frontSpringRate.toPrecision(2).toString()
           )
         }
         Box(modifier = Modifier.weight(1f)) {
           TextCardBox(
             label = "Rear Spring Rate",
-            value = rearSpringRate.toString()
+            value = rearSpringRate.toPrecision(2).toString()
           )
         }
       }
@@ -226,13 +283,13 @@ fun Tuning(
         Box(modifier = Modifier.weight(1f)) {
           TextCardBox(
             label = "Front Bump",
-            value = frontBump.toString()
+            value = frontBump.toPrecision(2).toString()
           )
         }
         Box(modifier = Modifier.weight(1f)) {
           TextCardBox(
             label = "Front Rebound",
-            value = frontRebound.toString()
+            value = frontRebound.toPrecision(2).toString()
           )
         }
       }
@@ -240,13 +297,13 @@ fun Tuning(
         Box(modifier = Modifier.weight(1f)) {
           TextCardBox(
             label = "Rear Bump",
-            value = rearBump.toString()
+            value = rearBump.toPrecision(2).toString()
           )
         }
         Box(modifier = Modifier.weight(1f)) {
           TextCardBox(
             label = "Rear Rebound",
-            value = rearRebound.toString()
+            value = rearRebound.toPrecision(2).toString()
           )
         }
       }
@@ -256,13 +313,13 @@ fun Tuning(
         Box(modifier = Modifier.weight(1f)) {
           TextCardBox(
             label = "Front ARB",
-            value = frontARB.toString()
+            value = frontARB.toPrecision(2).toString()
           )
         }
         Box(modifier = Modifier.weight(1f)) {
           TextCardBox(
             label = "Rear ARB",
-            value = rearARB.toString()
+            value = rearARB.toPrecision(2).toString()
           )
         }
       }

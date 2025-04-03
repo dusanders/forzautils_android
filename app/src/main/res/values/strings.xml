@@ -40,7 +40,7 @@
     <string name="tuningPage_weightInputHint">Weight</string>
     <string name="tuningPage_weightDistributionInputHint_front">Front Distribution</string>
     <string name="tuningPage_weightDistributionInputHint_rear">Rear Distribution</string>
-    <string name="tuningPage_weightInputDesc">Enter Total Vehicle Weight</string>
+    <string name="tuningPage_weightInputDesc">Total Weight</string>
     <string name="tuningPage_frontWeightDistributionDesc">Enter Front Weight Distribution</string>
     <string name="tuningPage_rearWeightDistributionDesc">Enter Rear Weight Distribution</string>
     <string name="sourcePage_heading">Choose Source</string>
