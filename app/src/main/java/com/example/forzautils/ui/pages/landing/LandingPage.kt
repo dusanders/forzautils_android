@@ -39,13 +39,10 @@ fun LandingPage(
       note = stringResource(R.string.landingPage_simHub_note)
     )
     WifiInfoTable(networkInfoViewModel)
-    if(forzaListening != null) {
-      ReadyButton(
-        onButtonClick = {
-          Log.d(tag, "Ready button clicked")
-          navController.navigate(Constants.Pages.SOURCE)
-        }
-      )
-    }
+    ReadyButton(
+      onButtonClick = {
+        navController.navigate(Constants.Pages.SOURCE)
+      }
+    )
   }
 }

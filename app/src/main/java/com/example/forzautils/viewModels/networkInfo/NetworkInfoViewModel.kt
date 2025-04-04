@@ -70,6 +70,8 @@ class NetworkInfoViewModel(
             lastPort!!,
           )
         )
+      } else {
+        _inetState.emit(null)
       }
     }
   }

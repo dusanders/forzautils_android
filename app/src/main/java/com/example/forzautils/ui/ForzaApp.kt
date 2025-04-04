@@ -75,12 +75,14 @@ fun ForzaApp(
           SplashPage()
         }
 
-        ConnectionStates.NO_WIFI -> {
-          actions.setShowBackButton(false)
-          NetworkError()
-        }
+        // Disable this for now
+//        ConnectionStates.NO_WIFI ->
+//          {
+//          actions.setShowBackButton(false)
+//          NetworkError()
+//        }
 
-        ConnectionStates.FORZA_OPEN -> {
+        ConnectionStates.FORZA_OPEN, ConnectionStates.NO_WIFI -> {
           NavHost(navController = navController, startDestination = Constants.Pages.LANDING) {
             composable(Constants.Pages.LANDING) {
               LandingPage(networkInfoViewModel, forzaViewModel, navController)
