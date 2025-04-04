@@ -6,7 +6,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.forzautils.ui.components.TextCardBox
@@ -17,6 +22,45 @@ import com.example.forzautils.viewModels.suspension.SuspensionViewModel
 fun Suspension(
   suspensionViewModel: SuspensionViewModel
 ) {
+  val tag = "Suspension"
+  val avgFrontTravelState = suspensionViewModel.averageFrontSuspensionTravel.window.collectAsState()
+  val avgRearTravelState = suspensionViewModel.averageRearSuspensionTravel.window.collectAsState()
+  val avgDiffState = suspensionViewModel.averageSuspensionDifference.window.collectAsState()
+  val frontDiffState = suspensionViewModel.frontDiff.window.collectAsState()
+  val rearDiffState = suspensionViewModel.rearDiff.window.collectAsState()
+
+  var frontAvgDisplay by remember { mutableFloatStateOf(0f) }
+  var rearAvgDisplay by remember { mutableFloatStateOf(0f) }
+  var avgDiffDisplay by remember { mutableFloatStateOf(0f) }
+  var frontDiffDisplay by remember { mutableFloatStateOf(0f) }
+  var rearDiffDisplay by remember { mutableFloatStateOf(0f) }
+
+  LaunchedEffect(avgFrontTravelState.value) {
+    if(avgFrontTravelState.value.isNotEmpty()) {
+      frontAvgDisplay = avgFrontTravelState.value.last().toPrecision(2)
+    }
+  }
+  LaunchedEffect(avgRearTravelState.value) {
+    if(avgRearTravelState.value.isNotEmpty()) {
+      rearAvgDisplay = avgRearTravelState.value.last().toPrecision(2)
+    }
+  }
+  LaunchedEffect(avgDiffState.value) {
+    if(avgDiffState.value.isNotEmpty()) {
+      avgDiffDisplay = avgDiffState.value.last().toPrecision(2)
+    }
+  }
+  LaunchedEffect(frontDiffState.value) {
+    if(frontDiffState.value.isNotEmpty()) {
+      frontDiffDisplay = frontDiffState.value.last().toPrecision(2)
+    }
+  }
+  LaunchedEffect(rearDiffState.value) {
+    if(rearDiffState.value.isNotEmpty()) {
+      rearDiffDisplay = rearDiffState.value.last().toPrecision(2)
+    }
+  }
+
   Column(
     modifier = Modifier
       .fillMaxWidth()
@@ -37,8 +81,7 @@ fun Suspension(
         TextCardBox(
           height = 75.dp,
           label = "Average Front Suspension Travel",
-          value = suspensionViewModel.averageFrontSuspensionTravel.window
-            .collectAsState().value.last().toPrecision(2).toString()
+          value = frontAvgDisplay.toString()
         )
       }
       Box(
@@ -47,8 +90,7 @@ fun Suspension(
         TextCardBox(
           height = 75.dp,
           label = "Front Difference",
-          value = suspensionViewModel.frontDiff.window
-            .collectAsState().value.last().toPrecision(2).toString()
+          value = frontDiffDisplay.toString()
         )
       }
     }
@@ -73,8 +115,7 @@ fun Suspension(
         TextCardBox(
           height = 75.dp,
           label = "Average Rear Suspension Travel",
-          value = suspensionViewModel.averageRearSuspensionTravel.window
-            .collectAsState().value.last().toPrecision(2).toString()
+          value = rearAvgDisplay.toString()
         )
       }
       Box(
@@ -83,8 +124,7 @@ fun Suspension(
         TextCardBox(
           height = 75.dp,
           label = "Rear Difference",
-          value = suspensionViewModel.rearDiff.window
-            .collectAsState().value.last().toPrecision(2).toString()
+          value = rearDiffDisplay.toString()
         )
       }
     }
@@ -100,8 +140,7 @@ fun Suspension(
     )
     TextCardBox(
       label = "Average Difference Suspension Travel",
-      value = suspensionViewModel.averageSuspensionDifference.window
-        .collectAsState().value.last().toPrecision(2).toString()
+      value = avgDiffDisplay.toString()
     )
   }
 }
