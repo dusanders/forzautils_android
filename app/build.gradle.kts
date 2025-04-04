@@ -4,20 +4,28 @@ import org.jetbrains.kotlin.gradle.targets.js.npm.includedRange
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.compose.compiler)
 }
 
 android {
     namespace = "com.example.forzautils"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.example.forzautils"
-        minSdk = 30
+        minSdk = 31
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildFeatures {
+        compose = true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.11"
     }
 
     buildTypes {
@@ -36,17 +44,12 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
-    sourceSets {
-        getByName("main") {
-            java {
-                srcDir("../../ForzaTelemetryApi/src")
-            }
-        }
-    }
 }
 
 dependencies {
     implementation(libs.mpandroidchart)
+    implementation(libs.vico.compose.m3)
+    implementation(libs.vico.views)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
@@ -56,6 +59,22 @@ dependencies {
     implementation(libs.androidx.lifecycle.livedata.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.fragment.ktx)
+    implementation(libs.androidx.material3)
+    implementation(libs.androidx.material3.icons)
+    implementation(libs.androidx.ui.tooling.preview)
+    implementation(libs.androidx.adaptive)
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.runtime.livedata)
+    implementation(libs.androidx.nav)
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(project(":data"))
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    debugImplementation(libs.androidx.ui.tooling)
+
+    // UI Tests
+    androidTestImplementation(libs.androidx.ui.test.junit4)
+    debugImplementation(libs.androidx.ui.test.manifest)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

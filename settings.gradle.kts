@@ -1,5 +1,7 @@
 pluginManagement {
     repositories {
+        gradlePluginPortal()
+        mavenCentral()
         google {
             content {
                 includeGroupByRegex("com\\.android.*")
@@ -7,8 +9,6 @@ pluginManagement {
                 includeGroupByRegex("androidx.*")
             }
         }
-        mavenCentral()
-        gradlePluginPortal()
     }
 }
 dependencyResolutionManagement {
@@ -21,4 +21,5 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "ForzaUtils"
-include(":app")
+include(":app", ":data")
+project(":data").projectDir = file("../ForzaTelemetryData/data")

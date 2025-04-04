@@ -1,74 +1,83 @@
 package com.example.forzautils.services
 
+import android.content.Context
+import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import forza.telemetry.ForzaInterface
-import forza.telemetry.ForzaTelemetryApi
-import forza.telemetry.ForzaTelemetryBuilder
-import forza.telemetry.VehicleData
-import java.net.DatagramPacket
+import androidx.lifecycle.Observer
+import com.example.forzautils.utils.Constants
+import forza.telemetry.data.ForzaConstants
+import forza.telemetry.data.ForzaUdpSocket
+import forza.telemetry.data.TelemetryData
+import forza.telemetry.data.types.ForzaUdpSocketEvents
+import java.net.SocketException
 
-class ForzaService(private val port: Int) : ForzaInterface {
+interface ForzaServiceCallbacks {
+  fun onSocketException(e: SocketException)
+}
 
-    private val _tag = "ForzaListener"
+/**
+ * Class to implement logic and callbacks for the Forza Telemetry module
+ */
+class ForzaService(
+  val context: Context,
+  private val callbacks: ForzaServiceCallbacks? = null
+) {
+  // Debug tag
+  private val _tag = "ForzaService"
 
-    private var telemetryBuilder: ForzaTelemetryBuilder? = null
-    private var telemetryBuilderThread: Thread? = null
+  private var port = Constants.Inet.PORT
 
-    private val _forzaListening: MutableLiveData<Boolean> = MutableLiveData(false)
-    val forzaListening: LiveData<Boolean> get() = _forzaListening
+  private var forzaUdpSocket: ForzaUdpSocket
 
-    private val _connected: MutableLiveData<Boolean> = MutableLiveData(false)
-    val forzaConnected: LiveData<Boolean> get() = _connected
+  // UDP Listening state
+  private val _forzaListening: MutableLiveData<Int?> = MutableLiveData(null)
+  val forzaListening: LiveData<Int?> get() = _forzaListening
 
-    private val _data: MutableLiveData<ForzaTelemetryApi?> = MutableLiveData()
-    val data: LiveData<ForzaTelemetryApi?> get() = _data
+  private val _rawBytes: MutableLiveData<ByteArray> = MutableLiveData()
+  val rawBytes: LiveData<ByteArray> get() = _rawBytes
 
-    fun start() {
-        Log.w(_tag, "Starting Forza listener...")
-        if(telemetryBuilder == null) {
-            telemetryBuilder = ForzaTelemetryBuilder(port)
-            telemetryBuilder?.addListener(this)
-        }
-        if(telemetryBuilderThread == null || telemetryBuilderThread!!.isInterrupted) {
-            telemetryBuilderThread = telemetryBuilder?.thread
-        }
-        if(!telemetryBuilderThread?.isAlive!!) {
-            telemetryBuilderThread?.start()
-                ?: Log.w(_tag, "ForzaTelemetryBuilder Thread is null")
-        }
-        Log.d(_tag, "Posting Forza Listening")
-        _forzaListening.postValue(true)
+  // Data state
+  private val _data: MutableLiveData<TelemetryData?> = MutableLiveData()
+  val data: LiveData<TelemetryData?> get() = _data
+
+  private val forzaSocketEvent = object : ForzaUdpSocketEvents {
+    override fun onSocketError(e: Exception) {
+      callbacks?.onSocketException(e as SocketException)
+      _forzaListening.postValue(null)
     }
 
-    fun stop() {
-        Log.w(_tag, "Stopping Forza listener...")
-        telemetryBuilderThread?.interrupt()
-        telemetryBuilder = null
-        telemetryBuilderThread = null
+    override fun onData(data: TelemetryData) {
+//      Log.d(_tag, "data: isFM8: ${data.gameVersion == ForzaConstants.GameVersion.MOTORSPORT_8} " +
+//          "${data.currentEngineRpm} ${data.timeStampMS} ${data.isRaceOn}"
+//      )
+      _data.postValue(data)
+      _rawBytes.postValue(data.rawBytes)
     }
 
-    override fun onDataReceived(api: ForzaTelemetryApi?) {
-        _data.postValue(api)
+    override fun onOpen(port: Int) {
+      _forzaListening.postValue(port)
     }
+  }
 
-    override fun onConnected(api: ForzaTelemetryApi?, packet: DatagramPacket?) {
-        _connected.postValue(true)
-        if(api != null) {
-            _data.postValue(api)
-        }
-    }
+  init {
+    forzaUdpSocket = ForzaUdpSocket(context, forzaSocketEvent)
+  }
 
-    override fun onGamePaused() {
-        // Not used
-    }
+  fun start() {
+    forzaUdpSocket.bind(port)
+  }
 
-    override fun onGameUnpaused() {
-        // Not used
-    }
-
-    override fun onCarChanged(api: ForzaTelemetryApi?, data: VehicleData?) {
-        // Not used
-    }
+  /**
+   * Stops the Forza listener
+   */
+  fun stop() {
+    Log.w(_tag, "Stopping Forza listener...")
+    forzaUdpSocket.stop()
+    _forzaListening.postValue(null)
+  }
 }

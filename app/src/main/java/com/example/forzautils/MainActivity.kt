@@ -1,163 +1,102 @@
 package com.example.forzautils
 
+import android.app.UiModeManager
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.fragment.app.Fragment
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
+import com.example.forzautils.services.ForzaRecorder
 import com.example.forzautils.services.ForzaService
+import com.example.forzautils.services.ForzaServiceCallbacks
 import com.example.forzautils.services.WiFiService
-import com.example.forzautils.ui.dataViewer.DataViewerFragment
-import com.example.forzautils.ui.dataViewer.DataViewerViewModel
-import com.example.forzautils.ui.networkError.NetworkErrorFragment
-import com.example.forzautils.ui.networkError.NetworkErrorViewModel
-import com.example.forzautils.ui.networkInfo.NetworkInfoFragment
-import com.example.forzautils.ui.networkInfo.NetworkInfoViewModel
-import com.example.forzautils.ui.splash.SplashFragment
-import com.example.forzautils.ui.splash.SplashViewModel
-import com.example.forzautils.utils.Constants
-import com.example.forzautils.utils.OffloadThread
+import com.example.forzautils.ui.ForzaApp
+import com.example.forzautils.ui.theme.ForzaUtilsTheme
+import com.example.forzautils.viewModels.forza.ForzaViewModel
+import com.example.forzautils.viewModels.forza.ForzaViewModelFactory
+import com.example.forzautils.viewModels.networkInfo.NetworkInfoViewModel
+import com.example.forzautils.viewModels.networkInfo.NetworkInfoViewModelFactory
+import com.example.forzautils.viewModels.replay.ReplayViewModel
+import com.example.forzautils.viewModels.replay.ReplayViewModelFactory
+import com.example.forzautils.viewModels.theme.ThemeViewModel
+import com.example.forzautils.viewModels.theme.ThemeViewModelFactory
+import com.example.forzautils.viewModels.tuningViewModel.TuningViewModel
+import java.net.SocketException
 
-class MainActivity : AppCompatActivity(), NetworkErrorViewModel.Callback {
-    enum class Pages {
-        SPLASH,
-        DATA_VIEWER,
-        NETWORK_INFO,
-        NETWORK_ERROR
-    }
+class MainActivity : ComponentActivity() {
 
-    private val _tag: String = "MainActivity"
+  private val _tag: String = "MainActivity"
 
-    private val _networkInfoViewModel: NetworkInfoViewModel by viewModels()
-    private val _splashViewModel: SplashViewModel by viewModels()
-    private val _networkErrorViewModel: NetworkErrorViewModel by viewModels()
-    private val _dataViewerViewModel: DataViewerViewModel by viewModels()
+  private lateinit var wiFiService: WiFiService
+  private lateinit var forzaService: ForzaService
+  private lateinit var forzaRecorder: ForzaRecorder
+  private val tuningViewModel by viewModels<TuningViewModel>()
+  private val themeViewModel by viewModels<ThemeViewModel> {
+    ThemeViewModelFactory(false)
+  }
+  private val networkInfoViewModel by viewModels<NetworkInfoViewModel> {
+    NetworkInfoViewModelFactory(wiFiService, forzaService)
+  }
+  private val forzaViewModel by viewModels<ForzaViewModel> {
+    ForzaViewModelFactory(forzaRecorder, forzaService)
+  }
 
-    private val currentFragment: MutableLiveData<Pages> = MutableLiveData(Pages.SPLASH)
-    private lateinit var wiFiService: WiFiService
-    private lateinit var forzaService: ForzaService
+  private val replayViewModel by viewModels<ReplayViewModel> {
+    ReplayViewModelFactory(forzaRecorder)
+  }
 
-    private val forzaListeningObserver: Observer<Boolean> = Observer { listening ->
-        Log.d(_tag, "ForzaListener now listening... $listening")
-        if (listening) {
-            wiFiService.inetState.value?.let { _networkInfoViewModel.setInetState(it) }
-            if (currentFragment.value == Pages.SPLASH) {
-                currentFragment.postValue(Pages.NETWORK_INFO)
-            }
-        }
-    }
+  init {
+//    StrictMode.enableDefaults()
+  }
 
-    private val wifiInetObserver: Observer<WiFiService.InetState> = Observer { inet ->
-        if (inet.ipString == Constants.DEFAULT_IP) {
-            currentFragment.postValue(Pages.NETWORK_ERROR)
-        } else {
-            forzaService.start()
-        }
-    }
-
-    private val forzaConnectedObserver: Observer<Boolean> = Observer { connected ->
-        Log.d(_tag, "Forza connected")
-    }
-
-    private val homeReadyBtnObserver: Observer<Boolean> = Observer { clicked ->
-        Log.d(_tag, "Home ready clicked")
-        currentFragment.postValue(Pages.DATA_VIEWER)
-    }
-
-    private val fragmentObserver: Observer<Pages> = Observer { page ->
-        updateFragment(page)
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        initializeServices()
-        initializeViewModels()
-        attachObservers()
-        setContentView(R.layout.activity_main)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        OffloadThread.Instance().post {
-            wiFiService.checkNetwork()
-        }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        removeObservers()
-        wiFiService.stop()
-        forzaService.stop()
-        OffloadThread.Instance().interrupt()
-    }
-
-
-    override fun onRetryNetworkClicked() {
-        Log.d(_tag, "Network error - retry clicked")
-        wiFiService.checkNetwork()
-    }
-
-    private fun initializeServices() {
-        wiFiService = WiFiService(
-            Constants.PORT,
-            baseContext
+  override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    forzaRecorder = ForzaRecorder(this)
+    wiFiService = WiFiService(this)
+    forzaService = ForzaService(this, object : ForzaServiceCallbacks {
+      override fun onSocketException(e: SocketException) {
+        Log.e(_tag, "Socket exception: ${e.message}")
+      }
+    })
+    val uiModeManager = getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
+    val isDarkMode = uiModeManager.nightMode == UiModeManager.MODE_NIGHT_YES
+    themeViewModel.setTheme(isDarkMode)
+    enableEdgeToEdge()
+    wiFiService.inetState.observeForever(wifiObserver)
+    setContent {
+      ForzaUtilsTheme(themeViewModel) {
+        ForzaApp(
+          themeViewModel,
+          networkInfoViewModel,
+          forzaViewModel,
+          replayViewModel,
+          tuningViewModel
         )
-        forzaService = ForzaService(wiFiService.port)
+      }
     }
+  }
 
-    private fun initializeViewModels() {
-        _dataViewerViewModel.forzaService = forzaService
-        _networkErrorViewModel.setCallback(this)
-    }
+  override fun onDestroy() {
+    super.onDestroy()
+    Log.d(_tag, "Destroying")
+    wiFiService.stop()
+    forzaService.stop()
+  }
 
-    private fun removeObservers() {
-        _networkInfoViewModel.readyBtnClicked.removeObserver(homeReadyBtnObserver)
-        wiFiService.inetState.removeObserver(wifiInetObserver)
-        forzaService.forzaListening.removeObserver(forzaListeningObserver)
-        forzaService.forzaConnected.removeObserver(forzaConnectedObserver)
-        currentFragment.removeObserver(fragmentObserver)
-    }
-
-    private fun attachObservers() {
-        _networkInfoViewModel.readyBtnClicked.observe(this, homeReadyBtnObserver)
-        wiFiService.inetState.observe(this, wifiInetObserver)
-        forzaService.forzaListening.observe(this, forzaListeningObserver)
-        forzaService.forzaConnected.observe(this, forzaConnectedObserver)
-        currentFragment.observe(this, fragmentObserver)
-    }
-
-    private fun updateFragment(page: Pages) {
-        var fragment: Fragment = SplashFragment(_splashViewModel)
-        when (page) {
-            Pages.SPLASH -> {
-                // no-op - we already set the fragment as the splash fragment
-            }
-
-            Pages.NETWORK_INFO -> {
-                fragment = NetworkInfoFragment()
-            }
-
-            Pages.NETWORK_ERROR -> {
-                fragment = NetworkErrorFragment()
-            }
-
-            Pages.DATA_VIEWER -> {
-                fragment = DataViewerFragment()
-            }
-        }
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.mainFragment_contentView, fragment)
-            .commit()
+  private val wifiObserver =
+    Observer<WiFiService.InetState?> { value ->
+      if (value == null
+        && forzaService.forzaListening.value != null
+      ) {
+        forzaService.stop()
+      }
+      if (value != null
+        && forzaService.forzaListening.value == null
+      ) {
+        forzaService.start()
+      }
     }
 }
