@@ -1,32 +1,38 @@
 # forzautils_android
 Android application for monitoring Forza telemetry data.
-This app requires the `motorsport` branch of [ForzaTelemetryAPI](https://https://github.com/dusanders/ForzaTelemetryAPI)
+This app requires the UDP and data parser project here: [ForzaTelemetryData](https://github.com/dusanders/ForzaTelemetryData)
 Please clone the repository beside this project so Gradle will build - or, adjust the gradle to point to the proper directory.
+
+Project settings.gradle.kts:
+
 ```gradle
-android {
     .
     .
     .
-    sourceSets {
-        getByName("main") {
-            java {
-                srcDir("../../ForzaTelemetryApi/src")
-            }
-        }
-    }
-}
+rootProject.name = "ForzaUtils"
+include(":app", ":data")
+project(":data").projectDir = file("../ForzaTelemetryData/data")
 ```
 
+App build.gradle.kts:
+```gradle
+
+dependencies {
+    .
+    .
+    .
+    implementation(project(":data"))
+    .
+    .
+    .
+}
+```
 ---
 ---
 
 # App Info
 
 Build and deploy the app to an Android device. 
-
-The device MUST be connected to WiFi - preferably the same WiFi as the Forza game.
-
-<img src="./readme_img/wifi-error.png" height="450" />
 
 ---
 
@@ -40,28 +46,20 @@ NOTE: Ensure data is in DASH format - not STEP!
 
 Tap `Ready` whenever forwarding is setup. 
 
-### *__Data is not required at this point.__*
-
 ---
 
-Next, choose the data view: `currently on HP / Torque curves are supported`
+The app allows for Live data, replays, and a tuning calculator
 
 <img src="./readme_img/data-chooser.png" height="450" />
 
 ---
 
-App will then wait for Forza data
+Preview of tuning calculator:
 
-<img src="./readme_img/hp-tq-wait.png" height="450" />
-
----
-
-Drive in Forza - the app will plot the horsepower and torque for each gear as you drive. Only the highest readings are recorded for each rpm and only at throttle over 95%.
-
-<img src="./readme_img/hp-tq-curves.png" height="450" />
-
-Use the `Clear` button to erase the plots and start over.
+<img src="./readme_img/tuning.png" height="450" />
 
 ---
 
-## There is no requirement to the order of gears or starting speed. The app will adjust its charts as you drive - creating new charts for any new gear or rpm received.
+Replay:
+
+<img src="./readme_img/replay.gif" height="450" />
